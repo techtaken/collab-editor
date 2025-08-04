@@ -1,0 +1,24 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2015",
+    "module": "esnext",
+    "lib": ["es2020", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@collab-editor/auth": ["auth/src/index.ts"],
+      "@collab-editor/utils": ["utils/src/index.ts"],
+      "@my-project/shared-types": ["shared-types/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}
