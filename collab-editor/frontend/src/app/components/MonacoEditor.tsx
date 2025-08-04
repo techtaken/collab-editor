@@ -1,15 +1,24 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import Editor, { OnMount } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 
 const MonacoEditor: React.FC = () => {
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const [user, setUser] = useState<User | null>({
+    id: '1',
+    email: 'xx@xx.com',
+    name: 'xx',
+    avatarUrl: 'https://via.placeholder.com/150',
+    googleId: '123'
+  });
 
   const handleEditorDidMount: OnMount = (editor, monacoInstance) => {
     editorRef.current = editor;
   };
 
-  const getCodeValue = () => {
+  
+
+  const saveCodeValue = () => {
     const value = editorRef.current?.getValue();
     alert(value);
   };
@@ -23,7 +32,7 @@ const MonacoEditor: React.FC = () => {
         theme="vs-dark"
         onMount={handleEditorDidMount}
       />
-      <button onClick={getCodeValue}>Get Code</button>
+      <button onClick={saveCodeValue}>Save Code</button>
     </div>
   );
 };

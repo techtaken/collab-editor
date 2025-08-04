@@ -62,7 +62,7 @@ realtimecollab> db.test.insertOne({ hello: "world" })
 ### 3. Run the backend API
 
 ```sh
-npm nx serve backend
+npx nx serve backend
 ```
 
 The API will start on http://localhost:3333
@@ -70,7 +70,7 @@ The API will start on http://localhost:3333
 ### 4. Run the frontend app
 
 ```sh
-npm nx serve frontend
+npx nx serve frontend
 ```
 
 The UI will start on http://localhost:4200 (or as configured by Vite)
@@ -78,11 +78,11 @@ The UI will start on http://localhost:4200 (or as configured by Vite)
 ### 5. Build and test
 
 ```sh
-npm nx build backend
-npm nx build frontend
-npm nx test shared-types
-npm nx test auth
-npm nx test socket
+npx nx build backend
+npx nx build frontend
+npx nx test shared-types
+npx nx test auth
+npx nx test socket
 ```
 
 ### 6. Nx Cloud Caching
@@ -94,7 +94,7 @@ Nx Cloud is enabled for build, serve, and test targets for fast CI and local cac
 To visualize dependencies:
 
 ```sh
-npm nx graph
+npx nx graph
 ```
 
 ## Features
