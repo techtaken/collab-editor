@@ -1,77 +1,118 @@
-# CollabEditor
+# Collab Editor Monorepo
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+A real-time collaborative code editor built with Nx, React, Express, Socket.io, MongoDB, Redis, and Google OAuth2.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is almost ready ✨.
+## Monorepo Structure
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+- `frontend`: React 18 + TypeScript frontend (CodeMirror 6, Google OAuth2, Socket.io)
+- `backend`: Node.js + Express + TypeScript backend (MongoDB, Redis, Socket.io, JWT, Google OAuth2)
+- `shared-types`: TypeScript interfaces for users, documents, and OT operations
+- `auth`: Auth utilities (JWT, Google OAuth2 helpers)
+- `socket`: Socket.io server setup and OT algorithm stubs
 
-## Finish your CI setup
+## Getting Started
 
-[Click here to finish setting up your workspace!](https://cloud.nx.app/connect/Loy0rkq09g)
-
-
-## Run tasks
-
-To run tasks with Nx use:
-
-```sh
-npx nx <target> <project-name>
-```
-
-For example:
+### 1. Install dependencies
 
 ```sh
-npx nx build myproject
+npm install
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+### 2. Set up environment variables
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Create a `.env` file in the root or export these variables in your shell:
 
-## Add new projects
+```
+# Database
+MONGO_URI=mongodb://localhost:27017/realtimecollab
+REDIS_URL=redis://localhost:6379
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
+# Google OAuth2
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
 
-To install a new plugin you can use the `nx add` command. Here's an example of adding the React plugin:
+# JWT
+JWT_SECRET=Ckv5QTFBf8fiBTCFQ8xNOLAz4cKpYWKbVvYm6IuaD1PpEK4pLoIFBscoxmnS6hEBUBFg3yW4Eu1wfwI1sGhtMQ==
+
+# API URL for frontend
+NX_API_URL=http://localhost:3333
+
+```
+
+For local development, you can use the defaults above for MongoDB and Redis.
+
+#### 2a. set up mongo
+
 ```sh
-npx nx add @nx/react
+cd mongodb-docker
+rm -rf mongo-data
 ```
-
-Use the plugin's generator to create new projects. For example, to create a new React app or library:
+start docker server
+```sh
+docker compose up -d
+```
+go to cmd install 
+```sh
+brew install mongosh
+mongosh "mongodb://root:example@localhost:27017/?authSource=admin"
+test> use realtimecollab
+switched to db realtimecollab
+realtimecollab> db.test.insertOne({ hello: "world" })
+```
+### 3. Run the backend API
 
 ```sh
-# Generate an app
-npx nx g @nx/react:app demo
-
-# Generate a library
-npx nx g @nx/react:lib some-lib
+npm nx serve backend
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+The API will start on http://localhost:3333
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### 4. Run the frontend app
 
+```sh
+npm nx serve frontend
+```
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+The UI will start on http://localhost:4200 (or as configured by Vite)
 
-## Install Nx Console
+### 5. Build and test
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+```sh
+npm nx build backend
+npm nx build frontend
+npm nx test shared-types
+npm nx test auth
+npm nx test socket
+```
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### 6. Nx Cloud Caching
 
-## Useful links
+Nx Cloud is enabled for build, serve, and test targets for fast CI and local caching.
 
-Learn more:
+### 7. Project Graph
 
-- [Learn more about this workspace setup](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+To visualize dependencies:
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+```sh
+npm nx graph
+```
+
+## Features
+
+- Google OAuth2 and JWT authentication
+- Real-time collaborative editing with Socket.io
+- MongoDB for document/user storage
+- Redis for session state
+- Operational Transform (OT) algorithm stubbed for collaborative editing
+
+## Environment Variables
+
+- `MONGO_URI`: MongoDB connection string
+- `REDIS_URL`: Redis connection string
+- `GOOGLE_CLIENT_ID`: Google OAuth2 client ID
+- `GOOGLE_CLIENT_SECRET`: Google OAuth2 client secret
+- `JWT_SECRET`: Secret for signing JWTs
+
+## License
+
+MIT
