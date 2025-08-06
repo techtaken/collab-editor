@@ -1,27 +1,30 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import Editor, { OnMount } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
+import { useRecoilValue } from "recoil";
+import { userAtom } from "../state/userAtom";
+import RegisterUser from "./RegisterUser";
 
 const MonacoEditor: React.FC = () => {
+  const user = useRecoilValue(userAtom);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-  const [user, setUser] = useState<User | null>({
-    id: '1',
-    email: 'xx@xx.com',
-    name: 'xx',
-    avatarUrl: 'https://via.placeholder.com/150',
-    googleId: '123'
-  });
 
   const handleEditorDidMount: OnMount = (editor, monacoInstance) => {
     editorRef.current = editor;
   };
 
-  
-
   const saveCodeValue = () => {
     const value = editorRef.current?.getValue();
     alert(value);
   };
+
+  useEffect(() => {
+    console.log("user ", user);
+  }, [editorRef, user]);
+
+  if (!user) {
+    return <RegisterUser />;
+  }
 
   return (
     <div>
