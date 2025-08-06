@@ -13,9 +13,38 @@ const MonacoEditor: React.FC = () => {
     editorRef.current = editor;
   };
 
-  const saveCodeValue = () => {
+  const saveCodeValue = async () => {
     const value = editorRef.current?.getValue();
-    alert(value);
+  
+    if (!value) {
+      alert("No code to save!");
+      return;
+    }
+  
+    try {
+      const response = await fetch('/api/save-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: user?.name, // Assuming `user` has a `username` property
+          code: value,
+        }),
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        alert("Code saved successfully!");
+        console.log("Response:", data);
+      } else {
+        const error = await response.json();
+        alert(`Failed to save code: ${error.error}`);
+      }
+    } catch (err) {
+      console.error("Error saving code:", err);
+      alert("An error occurred while saving the code.");
+    }
   };
 
   useEffect(() => {
