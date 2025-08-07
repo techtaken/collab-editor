@@ -3,11 +3,7 @@ import { Link } from "react-router-dom";
 import { useRecoilValue } from "recoil";
 import { userAtom } from "../state/userAtom";
 
-type HomeProps = {
-  onLogin: () => void;
-};
-
-const Home: React.FC<HomeProps> = ({ onLogin }) => {
+const Home: React.FC = () => {
   const user = useRecoilValue(userAtom);
 
   return (
@@ -33,23 +29,20 @@ const Home: React.FC<HomeProps> = ({ onLogin }) => {
           <span style={{ marginRight: "1rem" }}>Hello, {user.name}!</span>
         ) : null}
         {!user ? (
-          <button
-            onClick={onLogin}
-            style={{
-              background: "#fff",
-              color: "#764ba2",
-              border: "none",
-              borderRadius: "20px",
-              padding: "0.5rem 1.5rem",
-              fontWeight: 600,
-              cursor: "pointer",
-              fontSize: "1rem",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-              transition: "background 0.2s",
-            }}
-          >
-            Login
-          </button>
+          <Link
+          to="/register"
+          style={{
+            textDecoration: 'none',
+            color: '#fff',
+            backgroundColor: '#007bff',
+            padding: '10px 20px',
+            borderRadius: '5px',
+            display: 'inline-block',
+            marginTop: '20px',
+          }}
+        >
+          Register / Login
+        </Link>
         ) : (
           <Link
             to="/editor"

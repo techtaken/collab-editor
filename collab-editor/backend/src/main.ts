@@ -1,11 +1,15 @@
 import express from 'express';
 import * as path from 'path';
 import mongoose from 'mongoose';
+import cors from 'cors';
 
 const app = express();
 
 // Middleware to parse JSON
 app.use(express.json());
+app.use(cors({
+  origin: process.env.FE_URL,
+}));
 
 // MongoDB connection
 const mongoUri = process.env.MONGO_URI
@@ -38,12 +42,37 @@ app.post('/api/save-code', async (req, res) => {
   }
 
   try {
-    const newUserCode = new UserCode({ username, code });
-    await newUserCode.save();
-    res.status(201).send({ message: 'Code saved successfully', data: newUserCode });
+    const updatedUserCode = await UserCode.findOneAndUpdate(
+      { username }, // Search for an entry with the given username
+      { code }, // Update the code field
+      { new: true, upsert: true } // Return the updated document and create a new one if it doesn't exist
+    );
+    res.status(201).send({ message: 'Code saved successfully', data: updatedUserCode });
   } catch (error) {
     console.error('Error saving code:', error);
     res.status(500).send({ error: 'Failed to save code' });
+  }
+});
+
+// GET endpoint to retrieve saved code by username
+app.get('/api/get-code/:username', async (req, res) => {
+  const { username } = req.params;
+
+  if (!username) {
+    return res.status(400).send({ error: 'Username is required' });
+  }
+
+  try {
+    const userCode = await UserCode.findOne({ username });
+
+    if (!userCode) {
+      return res.status(404).send({ error: 'No code found for the specified username' });
+    }
+
+    res.status(200).send({ message: 'Code retrieved successfully', data: userCode });
+  } catch (error) {
+    console.error('Error retrieving code:', error);
+    res.status(500).send({ error: 'Failed to retrieve code' });
   }
 });
 
