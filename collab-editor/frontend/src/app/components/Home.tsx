@@ -1,10 +1,24 @@
-import React from "react";
+import React, {useState} from "react";
 import { Link } from "react-router-dom";
 import { useRecoilValue } from "recoil";
 import { userAtom } from "../state/userAtom";
+import { useNavigate } from 'react-router-dom';
+
 
 const Home: React.FC = () => {
   const user = useRecoilValue(userAtom);
+  const [collabCode, setCollabCode] = useState('');
+
+  const navigate = useNavigate();
+
+  const handleCollabClick = () => {
+    if (collabCode.trim()) {
+      navigate(`/editor?collabCode=${encodeURIComponent(collabCode)}`);
+    } else {
+      alert('Please enter a collaboration code!');
+    }
+  };
+
 
   return (
     <div
@@ -74,12 +88,41 @@ const Home: React.FC = () => {
           height: "70vh",
         }}
       >
-        <h1 style={{ fontSize: "3rem", fontWeight: 700, marginBottom: "1rem" }}>
-          Welcome to Collab Editor
-        </h1>
-        <p style={{ fontSize: "1.3rem", maxWidth: "600px", textAlign: "center", marginBottom: "2rem" }}>
-          Collaborate, code, and create together in real-time. Experience seamless code editing with your team.
-        </p>
+       <h1>Welcome to the Code Editor</h1>
+      <p>Enter your collab code below to start collaborating!</p>
+      <div style={{ marginTop: '20px' }}>
+        <input
+          type="text"
+          placeholder="Enter your collab code here"
+          value={collabCode}
+          onChange={(e) => setCollabCode(e.target.value)}
+          style={{
+            padding: '10px',
+            width: '300px',
+            borderRadius: '5px',
+            border: '1px solid #ccc',
+            fontSize: '16px',
+            marginRight: '10px',
+          }}
+        />
+        <button
+          onClick={handleCollabClick}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#007bff',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '5px',
+            fontSize: '16px',
+            cursor: 'pointer',
+            transition: 'background-color 0.3s ease',
+          }}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#0056b3')}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#007bff')}
+        >
+          Collab
+        </button>
+      </div>
         {/* Simple SVG graphic */}
         <svg width="320" height="180" viewBox="0 0 320 180" fill="none" xmlns="http://www.w3.org/2000/svg">
           <ellipse cx="160" cy="150" rx="120" ry="20" fill="#fff" fillOpacity="0.2"/>

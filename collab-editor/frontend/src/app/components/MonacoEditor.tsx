@@ -4,10 +4,15 @@ import * as monaco from "monaco-editor";
 import { useRecoilValue } from "recoil";
 import { userAtom } from "../state/userAtom";
 import RegisterUser from "./RegisterUser";
+import { useLocation } from 'react-router-dom';
+import { saveCode, getCode } from "../api/codeApi"; 
 
 const API_URL = 'http://localhost:3333/api';
 
 const MonacoEditor: React.FC = () => {
+  const location = useLocation();
+  const collabCode = new URLSearchParams(location.search).get('collabCode');
+
   const user = useRecoilValue(userAtom);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const [savedCode, setSavedCode] = useState('// Type your code here...');
@@ -26,28 +31,12 @@ const MonacoEditor: React.FC = () => {
     }
   
     try {
-      const response = await fetch(API_URL+ '/save-code', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: user?.name, // Assuming `user` has a `username` property
-          code: value,
-        }),
-      });
-  
-      if (response.ok) {
-        const data = await response.json();
-        alert("Code saved successfully!");
-        console.log("Response:", data);
-      } else {
-        const error = await response.json();
-        alert(`Failed to save code: ${error.error}`);
-      }
+      const data = await saveCode(user.name, value);
+      alert("Code saved successfully!");
+      console.log("Response:", data);
     } catch (err) {
-      console.error("Error saving code:", err);
-      alert("An error occurred while saving the code.");
+      alert(err.message);
+      console.error(err);
     }
   };
 
