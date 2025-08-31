@@ -1,37 +1,25 @@
-import express from 'express';
-import * as path from 'path';
-import cors from 'cors';
-import { getCodeByUsername, saveCodeToDb } from './controllers/codeController';
-import { getUserByCollabCode, generateCollabCodeForUser } from './controllers/userController';
+import express from "express";
+import cors from "cors";
+// import helmet from "helmet";
+// import cookieParser from "cookie-parser";
+import { registerRoutes } from "./routes";
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 
-const app = express();
+export const app = express();
 
-// Middleware to parse JSON
-app.use(express.json());
-app.use(cors({
-  origin: process.env.FE_URL,
-}));
+// app.use(helmet());
+app.use(cors({ origin: process.env.CORS_ORIGIN?.split(",") ?? "*", credentials: true }));
+app.use(express.json({ limit: "1mb" }));
+// app.use(cookieParser());
 
-// Serve static assets
-app.use('/assets', express.static(path.join(__dirname, 'assets')));
+// Mount all routers in one place
+registerRoutes(app);
 
-// API routes
-app.get('/api', (req, res) => {
-  res.send({ message: 'Welcome to backend!' });
+// 404 + error handler
+app.use(notFoundHandler);
+app.use(errorHandler);
+
+const PORT = process.env.PORT || 3333;
+app.listen(PORT, () => {
+  console.log(`✅ Server running on http://localhost:${PORT}`);
 });
-
-// POST endpoint to save user and code
-app.post('/api/save-code', saveCodeToDb);
-
-// GET endpoint to retrieve saved code by username
-app.get('/api/get-code/:username',getCodeByUsername );
-
-app.post('/api/generate-collab-code', generateCollabCodeForUser);
-app.get('/api/get-user-by-collab-code/:collabCode', getUserByCollabCode);
-
-// Start the server
-const port = process.env.PORT || 3333;
-const server = app.listen(port, () => {
-  console.log(`Listening at http://localhost:${port}/api`);
-});
-server.on('error', console.error);

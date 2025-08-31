@@ -23,7 +23,7 @@ export async function createDocument(
 }
 
 export async function getDocumentById(documentId: string) {
-  return DocumentRepository.findByIdWithRelations(documentId);
+  return DocumentRepository.getDocumentById(documentId);
 }
 
 /**

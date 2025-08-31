@@ -1,52 +1,118 @@
-// src/repositories/documentRepo.ts
+// src/repositories/doc.repository.ts
 import prisma from "../config/db";
-import * as Y from "yjs";
+import { Visibility } from "@prisma/client";
 
-export async function createDocument(ownerId: string, title: string, visibility: "PRIVATE" | "PUBLIC" = "PRIVATE") {
-  return prisma.document.create({
-    data: { ownerId, title, visibility }
+/**
+ * createDocument
+ */
+export async function createDocument(data: {
+  ownerId: string;
+  title: string;
+  content?: string;
+  visibility?: Visibility;
+  language?: string;
+}) {
+  return prisma.document.create({ data });
+}
+
+/**
+ * getDocumentById
+ */
+export async function getDocumentById(documentId: string) {
+  return prisma.document.findUnique({
+    where: { id: documentId },
+    include: {
+      owner: true,
+      memberships: { include: { user: true } },
+    },
   });
 }
 
-export async function getDocumentById(id: string) {
-  return prisma.document.findUnique({ where: { id } });
-}
-
-export async function listUserDocuments(userId: string) {
+/**
+ * findOwnedByUser
+ */
+export async function findOwnedByUser(userId: string, limit = 50) {
   return prisma.document.findMany({
-    where: { ownerId: userId }
+    where: { ownerId: userId },
+    orderBy: { updatedAt: "desc" },
+    take: limit,
   });
 }
 
-export async function updateDocumentTitle(id: string, title: string) {
+/**
+ * findSharedWithUser
+ */
+export async function findSharedWithUser(userId: string, limit = 50) {
+  return prisma.document.findMany({
+    where: { memberships: { some: { userId } } },
+    orderBy: { updatedAt: "desc" },
+    take: limit,
+  });
+}
+
+/**
+ * updateMeta
+ */
+export async function updateMeta(
+  documentId: string,
+  patch: { title?: string; visibility?: Visibility; language?: string }
+) {
   return prisma.document.update({
-    where: { id },
-    data: { title }
+    where: { id: documentId },
+    data: {
+      ...(patch.title ? { title: patch.title } : {}),
+      ...(patch.visibility ? { visibility: patch.visibility } : {}),
+      ...(patch.language ? { language: patch.language } : {}),
+    },
   });
 }
 
-export async function deleteDocument(id: string) {
-  return prisma.document.delete({ where: { id } });
-}
-
-// 🔹 Save Yjs state
-export async function saveDocumentContent(id: string, ydoc: Y.Doc) {
-  const update = Y.encodeStateAsUpdate(ydoc); // Uint8Array
+/**
+ * updateContent
+ */
+export async function updateContent(documentId: string, contentText: string) {
   return prisma.document.update({
-    where: { id },
-    data: { content: Buffer.from(update) }
+    where: { id: documentId },
+    data: { content: contentText },
   });
 }
 
-// 🔹 Load Yjs state
-export async function loadDocumentContent(id: string): Promise<Y.Doc | null> {
-  const doc = await prisma.document.findUnique({ where: { id } });
-  if (!doc || !doc.content) return null;
-
-  const ydoc = new Y.Doc();
-  Y.applyUpdate(ydoc, new Uint8Array(doc.content as Buffer));
-  return ydoc;
+/**
+ * findContentById
+ */
+export async function findContentById(documentId: string) {
+  return prisma.document.findUnique({
+    where: { id: documentId },
+    select: { content: true },
+  });
 }
+
+/**
+ * remove
+ */
+export async function remove(documentId: string) {
+  return prisma.document.delete({ where: { id: documentId } });
+}
+
+/**
+ * findById (used in duplicateDocument)
+ */
+export async function findById(documentId: string) {
+  return prisma.document.findUnique({ where: { id: documentId } });
+}
+
+/**
+ * create (used in duplicateDocument)
+ */
+export async function create(data: {
+  ownerId: string;
+  title: string;
+  content: string;
+  visibility: Visibility;
+}) {
+  return prisma.document.create({ data });
+}
+
 
 export async function findDocumentByIdWithMemberships(documentId: string) {
   return prisma.document.findUnique({
