@@ -59,6 +59,15 @@ test> use realtimecollab
 switched to db realtimecollab
 realtimecollab> db.test.insertOne({ hello: "world" })
 ```
+
+### 2b. set up postgres
+```sh
+brew install postgresql
+brew services start postgresql
+
+npm run db:init
+```
+
 ### 3. Run the backend API
 
 ```sh

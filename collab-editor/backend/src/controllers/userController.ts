@@ -1,4 +1,4 @@
-import CollabCode from '../models/CollabCode';
+// import CollabCode from '../models/CollabCode';
 import { Request, Response } from 'express';
 
 export const getUserByCollabCode = async (req: Request, res: Response) => {

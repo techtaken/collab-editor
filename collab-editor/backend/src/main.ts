@@ -1,8 +1,8 @@
 import express from 'express';
 import * as path from 'path';
 import cors from 'cors';
-import { getCodeByUsername, saveCodeToDb } from './controllers/CodeController';
-import { getUserByCollabCode, generateCollabCodeForUser } from './controllers/UserController';
+import { getCodeByUsername, saveCodeToDb } from './controllers/codeController';
+import { getUserByCollabCode, generateCollabCodeForUser } from './controllers/userController';
 
 const app = express();
 

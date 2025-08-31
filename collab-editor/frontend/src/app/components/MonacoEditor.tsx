@@ -44,15 +44,10 @@ const MonacoEditor: React.FC = () => {
     if (!user?.name) return;
 
     try {
-      const response = await fetch(API_URL+ `/get-code/${user.name}`);
-      if (response.ok) {
-        const data = await response.json();
-        setSavedCode(data?.data?.code || '// Type your code here...');
-      } else {
-        console.error('Failed to fetch saved code:', await response.text());
-      }
+      const data = await getCode(user.name);
+      setSavedCode(data?.data?.code || '// Type your code here...');
     } catch (error) {
-      console.error('Error fetching saved code:', error);
+      console.error("Error fetching saved code:", error);
     }
   };
 

@@ -1,0 +1,60 @@
+// schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Visibility {
+  PRIVATE
+  PUBLIC
+  RESTRICTED
+}
+
+enum AccessLevel {
+  READ
+  WRITE
+}
+
+model User {
+  id                 String       @id @default(uuid())
+  email              String       @unique
+  name               String?
+  preferred_language String?
+  createdAt          DateTime     @default(now())
+
+  documents   Document[]   // documents owned by this user
+  memberships Membership[]
+}
+
+model Document {
+  id         String     @id @default(uuid())
+  title      String
+  content    String     @default("")
+  visibility Visibility @default(PRIVATE)
+  shareToken String?    @unique
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  ownerId String
+  owner   User     @relation(fields: [ownerId], references: [id])
+  memberships Membership[]
+}
+
+model Membership {
+  id          String      @id @default(uuid())
+  accessLevel AccessLevel @default(READ)
+  createdAt   DateTime    @default(now())
+
+  userId     String
+  documentId String
+
+  user     User     @relation(fields: [userId], references: [id])
+  document Document @relation(fields: [documentId], references: [id])
+
+  @@unique([userId, documentId])
+}

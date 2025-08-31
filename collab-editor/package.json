@@ -2,7 +2,9 @@
   "name": "@collab-editor/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "db:init": "psql $POSTGRES_URI -f backend/src/db/migrations/001_init.sql"
+  },
   "private": true,
   "devDependencies": {
     "@eslint/js": "^9.8.0",
@@ -28,6 +30,7 @@
     "@types/express": "^4.17.21",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.0.0",
+    "@types/pg": "^8.15.5",
     "@types/react": "18.0.0",
     "@types/react-dom": "18.0.0",
     "@vitejs/plugin-react": "^4.2.0",
@@ -42,6 +45,7 @@
     "jsonc-eslint-parser": "^2.1.0",
     "nx": "21.3.11",
     "prettier": "^2.6.2",
+    "prisma": "^6.15.0",
     "react-refresh": "^0.10.0",
     "ts-jest": "^29.4.0",
     "ts-node": "10.9.1",
@@ -54,14 +58,19 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
+    "@prisma/client": "^6.15.0",
     "@types/react-router-dom": "^5.3.3",
     "axios": "^1.6.0",
+    "cors": "^2.8.5",
     "express": "^4.21.2",
     "monaco-editor": "^0.52.2",
     "mongoose": "^8.17.0",
+    "pg": "^8.16.3",
     "react": "18.0.0",
     "react-dom": "18.0.0",
     "react-router-dom": "^7.7.1",
-    "recoil": "^0.7.7"
+    "recoil": "^0.7.7",
+    "y-websocket": "^3.0.0",
+    "yjs": "^13.6.27"
   }
 }
