@@ -1,21 +1,15 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import MonacoEditor from './components/MonacoEditor';
-import RegisterUser from './components/RegisterUser';
-import Home from './components/Home';
-import NavBar from './components/NavBar';
+// src/App.tsx
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import Dashboard from "./pages/Dashboard";
+import DocPage from "./pages/DocPage";
 
-export function App() {
+export default function App() {
   return (
-    <Router>
-      <NavBar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/editor" element={<MonacoEditor />} />
-        <Route path="/register" element={<RegisterUser />} />
-      </Routes>
-    </Router>
+    <Routes>
+      <Route path="/" element={<Dashboard />} />
+      <Route path="/doc/:id" element={<DocPage />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
-
-export default App;
