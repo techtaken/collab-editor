@@ -1,9 +1,10 @@
 // src/lib/api.ts
-const API_BASE = import.meta.env.REACT_APP_BE_URL ?? "";
+const API_BASE = import.meta.env.REACT_APP_BE_URL ?? "http://localhost:3333";
 
 async function fetchJSON(input: string, init?: RequestInit) {
+  console.log("API_BASE", API_BASE);
   const res = await fetch(API_BASE + input, {
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json" ,"x-user-id": "1" },
     credentials: "include",
     ...init,
   });

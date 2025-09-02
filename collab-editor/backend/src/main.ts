@@ -8,7 +8,7 @@ import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 export const app = express();
 
 // app.use(helmet());
-app.use(cors({ origin: process.env.CORS_ORIGIN?.split(",") ?? "*", credentials: true }));
+app.use(cors({ origin: process.env.FE_URL?.split(",") ?? "*", credentials: true }));
 app.use(express.json({ limit: "1mb" }));
 // app.use(cookieParser());
 
