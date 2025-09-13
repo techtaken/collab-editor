@@ -32,12 +32,12 @@ export async function getOrCreateUserByEmail(
   return userRepo.createUser({ email, name, preferredLanguage });
 }
 
-// Update preferred language
-export async function updatePreferredLanguage(
+// patch User Info
+export async function patchUser(
   userId: string,
-  preferredLanguage: string
+  data: { name?: string; preferredLanguage?: string }
 ): Promise<User> {
-  return userRepo.updateUser(userId, { preferredLanguage });
+  return userRepo.updateUser(userId, data );
 }
 
 // List recent users

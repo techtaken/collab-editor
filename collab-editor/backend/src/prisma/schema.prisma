@@ -24,6 +24,7 @@ model User {
   id                 String       @id @default(uuid())
   email              String       @unique
   name               String?
+  passhash           String
   preferred_language String?
   createdAt          DateTime     @default(now())
 
@@ -36,12 +37,13 @@ model Document {
   title      String
   content    String     @default("")
   visibility Visibility @default(PRIVATE)
+  language   String
   shareToken String?    @unique
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
 
-  ownerId String
-  owner   User     @relation(fields: [ownerId], references: [id])
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id])
   memberships Membership[]
 }
 

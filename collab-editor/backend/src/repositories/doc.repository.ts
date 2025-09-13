@@ -10,10 +10,21 @@ export async function createDocument(data: {
   title: string;
   content?: string;
   visibility?: Visibility;
-  language?: string;
+  language: string;
 }) {
-  return prisma.document.create({ data });
+  return prisma.document.create({
+    data: {
+      title: data.title,
+      content: data.content ?? "",
+      visibility: data.visibility ?? Visibility.PRIVATE,
+      language: data.language ?? "plaintext",
+      owner: {
+        connect: { id: data.ownerId },
+      },
+    },
+  });
 }
+
 
 /**
  * getDocumentById
@@ -104,14 +115,14 @@ export async function findById(documentId: string) {
 /**
  * create (used in duplicateDocument)
  */
-export async function create(data: {
-  ownerId: string;
-  title: string;
-  content: string;
-  visibility: Visibility;
-}) {
-  return prisma.document.create({ data });
-}
+// export async function create(data: {
+//   ownerId: string;
+//   title: string;
+//   content: string;
+//   visibility: Visibility;
+// }) {
+//   return prisma.document.create({ data });
+// }
 
 
 export async function findDocumentByIdWithMemberships(documentId: string) {

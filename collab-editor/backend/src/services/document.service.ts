@@ -18,7 +18,8 @@ export async function createDocument(
     title,
     content: "",
     visibility,
-    ...(language ? { language } : {}),
+    // ...(language ? { language } : {}),
+    language,
   });
 }
 
@@ -76,10 +77,11 @@ export async function duplicateDocument(documentId: string, newOwnerId: string, 
   const doc = await DocumentRepository.findById(documentId);
   if (!doc) throw new Error("Document not found");
 
-  return DocumentRepository.create({
+  return DocumentRepository.createDocument({
     ownerId: newOwnerId,
     title: newTitle ?? `${doc.title} (copy)`,
     content: doc.content,
     visibility: doc.visibility,
+    language: doc.language,
   });
 }

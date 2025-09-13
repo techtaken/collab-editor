@@ -31,6 +31,7 @@ export async function updateUser(
     data: {
       name: data.name,
       preferred_language: data.preferredLanguage,
+      // modifiedAt: new Date(),
     },
   });
 }

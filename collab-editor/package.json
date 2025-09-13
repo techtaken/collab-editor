@@ -76,6 +76,7 @@
     "codemirror": "^6.0.2",
     "cors": "^2.8.5",
     "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
     "monaco-editor": "^0.52.2",
     "mongoose": "^8.17.0",
     "pg": "^8.16.3",
