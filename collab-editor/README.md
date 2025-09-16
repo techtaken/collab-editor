@@ -69,6 +69,13 @@ npm run db:init
 ```
 
 ### 3. Run the backend API
+#### 3a. prisma migrate + genrate prisma client (types)
+
+```sh
+npx prisma migrate dev --name comment_for_changes
+
+npx prisma generate
+```
 
 ```sh
 npx nx serve backend

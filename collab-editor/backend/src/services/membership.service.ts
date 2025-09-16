@@ -18,7 +18,10 @@ export async function addMember(documentId: string, userId: string, role: Access
  * If you prefer strict invite-only, replace getOrCreateUserByEmail with getUserByEmail and error if not found.
  */
 export async function addMemberByEmail(documentId: string, email: string, role: AccessLevel = AccessLevel.READ) {
-  const user = await userService.getOrCreateUserByEmail(email);
+  const user = await userService.getUserByEmail(email);
+  if(!user){
+    throw new Error("User with this email does not exist");
+  }
   return addMember(documentId, user.id, role);
 }
 

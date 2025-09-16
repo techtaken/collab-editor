@@ -2,7 +2,7 @@
 import crypto from "crypto";
 import { addMember } from "./membership.service";
 import { AccessLevel } from "@prisma/client";
-import { getOrCreateUserByEmail } from "./user.service";
+// import { getOrCreateUserByEmail } from "./user.service";
 import * as documentRepo from "../repositories/doc.repository";
 
 /**
@@ -32,8 +32,8 @@ export async function revokeShareToken(documentId: string) {
  * convenience: shareWithEmail
  * - Add a user (found by email) as an editor/viewer directly
  */
-export async function shareWithEmail(documentId: string, email: string, role: AccessLevel = AccessLevel.READ) {
-  // find or create the user
-  const user = await getOrCreateUserByEmail(email);
-  return addMember(documentId, user.id, role);
-}
+// export async function shareWithEmail(documentId: string, email: string, role: AccessLevel = AccessLevel.READ) {
+//   // find or create the user
+//   const user = await getOrCreateUserByEmail(email);
+//   return addMember(documentId, user.id, role);
+// }

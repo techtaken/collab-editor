@@ -10,14 +10,16 @@ export async function findUserByEmail(email: string) {
 
 export async function createUser(data: {
   email: string;
-  name?: string;
+  name: string;
   preferredLanguage?: string;
+  hashedPassword: string;
 }) {
   return prisma.user.create({
     data: {
       email: data.email,
       name: data.name,
-      preferred_language: data.preferredLanguage ?? null,
+      preferredLanguage: data.preferredLanguage ?? null,
+      hashedPassword: data.hashedPassword,
     },
   });
 }
@@ -30,7 +32,7 @@ export async function updateUser(
     where: { id },
     data: {
       name: data.name,
-      preferred_language: data.preferredLanguage,
+      preferredLanguage: data.preferredLanguage,
       // modifiedAt: new Date(),
     },
   });

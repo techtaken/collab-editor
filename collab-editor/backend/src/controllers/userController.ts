@@ -15,38 +15,56 @@ router.get("/me", ensureAuth, asyncHandler(async (req, res) => {
   res.json(me);
 }));
 
-// router.post("/register", asyncHandler(async (req, res, next) => {
-//     try {
-//       const { email, password } = req.body;
+router.post("/register", asyncHandler(async (req, res, next) => {
+    try {
+      const { email, username, password } = req.body;
 
-//       if (!email || !password) {
-//         return res.status(400).json({ message: "Email and password are required" });
-//       }
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+      }
 
-//       const user = await userService.registerUser(email, password);
-//       return res.status(201).json({ message: "User registered successfully", user });
-//     } catch (err) {
-//       if (err.message.includes("exists")) {
-//         return res.status(409).json({ message: err.message });
-//       }
-//       next(err);
-//     }
-//   })
-// );
+      const user = await userService.registerUser(email, username, password);
+      if (!user) {
+        return res.status(400).json({ message: "Registration failed" });
+      }
+      const loginUser = await userService.validateAndGetUser(email, password);
+      console.log("loginUser ", loginUser);
+      
+          // Generate JWT
+          const token = jwt.sign(
+            { id: loginUser.id, email: loginUser.email },
+            process.env.JWT_SECRET!,
+            { expiresIn: '1h' } // Token valid for 1 hour
+          );
+          const expiresIn = 3600; // 1 hour in seconds
+
+      return res.status(201).json({ 
+            message: "User registered successfully",
+            user:loginUser,
+            token,
+            expiresIn });
+    } catch (err) {
+      if (err.message.includes("exists")) {
+        return res.status(409).json({ message: err.message });
+      }
+      next(err);
+    }
+  })
+);
 
 router.post(
   "/login",
   validate({
     body: z.object({
       email: z.string().email(),
-      username: z.string().min(1).max(50),
+      password: z.string().min(1).max(50),
     }),
   }),
   asyncHandler(async (req, res) => {
-    const { email, username, password } = req.body;
-    let user = await userService.getUserByEmail(email);
+    const { email, password } = req.body;
+    let user = await userService.validateAndGetUser(email, password);
     if (!user) {
-      user = await userService.createUser(email, username, "TypeScript");
+      return res.status(400).json({ message: "Either User does not exist or password is wrong" });
     }
     
     // Generate JWT
@@ -57,30 +75,30 @@ router.post(
     );
     const expiresIn = 3600; // 1 hour in seconds
 
-    res.json({
+    return res.status(201).json({ 
+      message: "User logined successfully",
       user,
       token,
-      expiresIn
-    });
+      expiresIn });
   })
 );
 
-router.post(
-  "/errorInLoginDueToValidate", 
-  validate({
-    body: z.object({
-      username: z.string().min(1).max(50),
-    }),
-  }), 
-  asyncHandler(async (req, res) => {
-  const { email , username} = req.body;
-  let user = await userService.getOrCreateUserByEmail(email);
-  if (!user) {
-    user = await userService.createUser(email, username, "TypeScript");
-  }
-  // In real app, return JWT or set session cookie
-  res.json(user);
-}));    
+// router.post(
+//   "/errorInLoginDueToValidate", 
+//   validate({
+//     body: z.object({
+//       username: z.string().min(1).max(50),
+//     }),
+//   }), 
+//   asyncHandler(async (req, res) => {
+//   const { email , username} = req.body;
+//   let user = await userService.getOrCreateUserByEmail(email);
+//   if (!user) {
+//     user = await userService.createUser(email, username, "TypeScript");
+//   }
+//   // In real app, return JWT or set session cookie
+//   res.json(user);
+// }));    
 
 
 // PATCH /api/users/me
