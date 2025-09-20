@@ -66,6 +66,8 @@ brew install postgresql
 brew services start postgresql
 
 npm run db:init
+
+postgres log file :->  cat /usr/local/var/log/postgresql\@14.log | tail -100
 ```
 
 ### 3. Run the backend API

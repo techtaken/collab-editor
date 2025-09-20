@@ -62,6 +62,18 @@ router.get(
   })
 );
 
+router.patch(
+  "/:id/content",
+  ensureAuth,
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    if (!(await canWrite(req.user!.id, id))) return res.status(403).json({ message: "Forbidden" });
+
+    const content = await documentService.saveDocumentContent(id, req.body.content);
+    res.json({ content: content ?? "" });
+  })
+);
+
 const updateSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   language: z.string().max(50).optional(),

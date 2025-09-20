@@ -26,10 +26,22 @@ export const api = {
   getDocContent: (id: string) => fetchJSON(`/api/documents/${id}/content`),
   saveDocContent: (id: string, content: string) =>
     fetchJSON(`/api/documents/${id}/content`, {
-      method: "PUT",
+      method: "PATCH",
       body: JSON.stringify({ content }),
     }),
   createShareToken: (id: string) => fetchJSON(`/api/documents/${id}/share/token`, { method: "POST" }),
   revokeShareToken: (id: string) => fetchJSON(`/api/documents/${id}/share/token`, { method: "DELETE" }),
   // membership endpoints can be added similarly
+
+  // --- Added login and register ---
+  register: (email: string, username: string, password: string) =>
+    fetchJSON("/api/users/register", {
+      method: "POST",
+      body: JSON.stringify({ email, username, password }),
+    }),
+  login: (email: string, password: string) =>
+    fetchJSON("/api/users/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    }),
 };
