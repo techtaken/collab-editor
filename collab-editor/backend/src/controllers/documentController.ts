@@ -6,6 +6,8 @@ import { validate } from "../middleware/validate";
 import * as documentService from "../services/document.service";
 import { canRead, canWrite } from "../services/access-control.service";
 import { Visibility } from "@prisma/client";
+import * as DocumentRepository from "../repositories/doc.repository";
+
 
 export const router = Router();
 
@@ -43,8 +45,20 @@ router.get(
   ensureAuth,
   asyncHandler(async (req, res) => {
     const { id } = req.params;
-    if (!(await canRead(req.user!.id, id))) return res.status(403).json({ message: "Forbidden" });
+    if (!(await canRead({userId:req.user!.id, documentId : id}))) return res.status(403).json({ message: "Forbidden" });
     const doc = await documentService.getDocumentById(id);
+    if (!doc) return res.status(404).json({ message: "Not found" });
+    res.json(doc);
+  })
+);
+
+router.get(
+  "token/:token",
+  ensureAuth,
+  asyncHandler(async (req, res) => {
+    const { token } = req.params;
+    if (!(await canRead({userId : req.user!.id, token}))) return res.status(403).json({ message: "Forbidden" });
+    const doc = await DocumentRepository.findDocumentByShareToken(token);
     if (!doc) return res.status(404).json({ message: "Not found" });
     res.json(doc);
   })
@@ -56,7 +70,7 @@ router.get(
   ensureAuth,
   asyncHandler(async (req, res) => {
     const { id } = req.params;
-    if (!(await canRead(req.user!.id, id))) return res.status(403).json({ message: "Forbidden" });
+    if (!(await canRead({userId:req.user!.id, documentId : id}))) return res.status(403).json({ message: "Forbidden" });
     const content = await documentService.loadDocumentContent(id);
     res.json({ content: content ?? "" });
   })
@@ -67,7 +81,7 @@ router.patch(
   ensureAuth,
   asyncHandler(async (req, res) => {
     const { id } = req.params;
-    if (!(await canWrite(req.user!.id, id))) return res.status(403).json({ message: "Forbidden" });
+    if (!(await canWrite({userId:req.user!.id, documentId : id}))) return res.status(403).json({ message: "Forbidden" });
 
     const content = await documentService.saveDocumentContent(id, req.body.content);
     res.json({ content: content ?? "" });
@@ -89,7 +103,7 @@ router.patch(
     const { id } = req.params;
 
     // You may decide: only owners can change visibility; writers can change title/language
-    const canW = await canWrite(req.user!.id, id);
+    const canW = await canWrite({userId:req.user!.id, documentId : id});
     if (!canW) return res.status(403).json({ message: "Forbidden" });
 
     const updated = await documentService.updateDocumentMeta(id, req.body);

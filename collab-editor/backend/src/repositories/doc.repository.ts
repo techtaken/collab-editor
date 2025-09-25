@@ -10,6 +10,7 @@ export async function createDocument(data: {
   title: string;
   content?: string;
   visibility?: Visibility;
+  shareToken: string;
   language: string;
 }) {
   return prisma.document.create({
@@ -136,6 +137,13 @@ export async function updateDocumentShareToken(documentId: string, token: string
   return prisma.document.update({
     where: { id: documentId },
     data: { shareToken: token }
+  });
+}
+export async function findDocumentByShareToken(shareToken: string | null) {
+  if (!shareToken) return null;
+  return prisma.document.findFirst({
+    where: { shareToken },
+    include: { memberships: true },
   });
 }
 

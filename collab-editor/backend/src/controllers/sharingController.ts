@@ -3,7 +3,7 @@ import { ensureAuth, allowAnonymous } from "../middleware/auth";
 import { asyncHandler } from "../middleware/asyncHandler";
 import * as documentService from "../services/document.service";
 import * as sharingService from "../services/sharing.service";
-import { evaluateAccess } from "../services/access-control.service";
+import { evaluateAccessUsinfDocId, evaluateAccessUsingToken } from "../services/access-control.service";
 
 export const router = Router({ mergeParams: true });
 const basePath = "/:id/share"; // mounted under /api/documents
@@ -44,9 +44,8 @@ router.get(
   `${basePath}/access-check`,
   allowAnonymous, // populates req.user if present, but doesn't require it
   asyncHandler(async (req, res) => {
-    const { id } = req.params;
     const token = (req.query.token as string) || null;
-    const result = await evaluateAccess({ userId: req.user?.id ?? null, documentId: id, token });
+    const result = await evaluateAccessUsingToken({ userId: req.user?.id ?? null,shareToken : token });
     res.json(result);
   })
 );
