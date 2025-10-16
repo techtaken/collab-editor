@@ -3,6 +3,30 @@ import { userAtom } from "../state/userAtom";
 
 const API_BASE = import.meta.env.REACT_APP_BE_URL ?? "http://localhost:3333";
 
+// Simple error popup function
+function showErrorPopup(message: string) {
+  // Create popup container
+  const popup = document.createElement("div");
+  popup.style.position = "fixed";
+  popup.style.top = "20px";
+  popup.style.left = "50%";
+  popup.style.transform = "translateX(-50%)";
+  popup.style.background = "#e94560";
+  popup.style.color = "#fff";
+  popup.style.padding = "16px 32px";
+  popup.style.borderRadius = "8px";
+  popup.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
+  popup.style.zIndex = "9999";
+  popup.style.fontSize = "16px";
+  popup.innerText = message;
+
+  document.body.appendChild(popup);
+
+  setTimeout(() => {
+    popup.remove();
+  }, 3500);
+}
+
 async function fetchJSON(input: string, init?: RequestInit, useAuth = true) {
   console.log("API_BASE", API_BASE);
 
@@ -22,6 +46,12 @@ async function fetchJSON(input: string, init?: RequestInit, useAuth = true) {
   });
   if (!res.ok) {
     const text = await res.text();
+    showErrorPopup(text || res.statusText); // <-- replaced alert with popup
+    if (res.status === 401) {
+      // Auto logout on 401
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+    }
     throw new Error(text || res.statusText);
   }
   return res.json();
