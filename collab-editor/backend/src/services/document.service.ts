@@ -1,6 +1,29 @@
 // src/services/document.service.ts
 import { Visibility } from "@prisma/client";
 import * as DocumentRepository from "../repositories/doc.repository";
+import crypto from "crypto";
+
+
+/**
+ * Generate a secure random token
+ * @param length Length of the token in characters
+ * @returns A random Base62 token (0-9a-zA-Z)
+ */
+function generateShareToken(length: number = 8): string {
+  const tokenCharacters = process.env.TOKEN_CHARACTER || "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const alphabetLength = tokenCharacters.length;
+
+  // Generate random bytes
+  const bytes = crypto.randomBytes(length);
+
+  // Map each byte to a character in the alphabet
+  let token = "";
+  for (let i = 0; i < length; i++) {
+    token += tokenCharacters[bytes[i] % alphabetLength];
+  }
+
+  return token;
+}
 
 /**
  * createDocument
@@ -13,11 +36,13 @@ export async function createDocument(
   language?: string,
   visibility: Visibility = Visibility.PRIVATE
 ) {
+  const shareToken  = generateShareToken(10)
   return DocumentRepository.createDocument({
     ownerId,
     title,
     content: "",
     visibility,
+    shareToken,
     // ...(language ? { language } : {}),
     language,
   });
@@ -77,11 +102,14 @@ export async function duplicateDocument(documentId: string, newOwnerId: string, 
   const doc = await DocumentRepository.findById(documentId);
   if (!doc) throw new Error("Document not found");
 
+  const shareToken  = generateShareToken(10);
+
   return DocumentRepository.createDocument({
     ownerId: newOwnerId,
     title: newTitle ?? `${doc.title} (copy)`,
     content: doc.content,
     visibility: doc.visibility,
+    shareToken,
     language: doc.language,
   });
 }
