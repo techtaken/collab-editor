@@ -4,7 +4,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import DocPage from "./pages/DocPage";
 import Home from "./pages/Home";
-import RegisterUser from "./pages/RegisterUser";
+import AuthForm from "./pages/AuthForm";
 
 export default function App() {
   return (
@@ -12,7 +12,8 @@ export default function App() {
       <Route path="/" element={<Dashboard />} />
       <Route path="/doc/:id" element={<DocPage />} />
       <Route path="/home" element={<Home />} />
-      <Route path="/register" element={<RegisterUser />} />
+      <Route path="/register" element={<AuthForm />} />
+      <Route path="/login" element={<AuthForm />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

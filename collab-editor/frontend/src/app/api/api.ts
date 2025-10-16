@@ -1,10 +1,22 @@
-// src/lib/api.ts
+import { getRecoil } from "recoil-nexus";
+import { userAtom } from "../state/userAtom";
+
 const API_BASE = import.meta.env.REACT_APP_BE_URL ?? "http://localhost:3333";
 
-async function fetchJSON(input: string, init?: RequestInit) {
+async function fetchJSON(input: string, init?: RequestInit, useAuth = true) {
   console.log("API_BASE", API_BASE);
+
+  // Get token from userAtom if useAuth is true
+  let headers: Record<string, string> = { "Content-Type": "application/json", "x-user-id": "1" };
+  if (useAuth) {
+    const user = getRecoil(userAtom);
+    if (user?.token) {
+      headers["Authorization"] = `Bearer ${user.token}`;
+    }
+  }
+
   const res = await fetch(API_BASE + input, {
-    headers: { "Content-Type": "application/json" ,"x-user-id": "1" },
+    headers,
     credentials: "include",
     ...init,
   });
@@ -33,15 +45,15 @@ export const api = {
   revokeShareToken: (id: string) => fetchJSON(`/api/documents/${id}/share/token`, { method: "DELETE" }),
   // membership endpoints can be added similarly
 
-  // --- Added login and register ---
+  // --- login and register do NOT use Authorization header ---
   register: (email: string, username: string, password: string) =>
     fetchJSON("/api/users/register", {
       method: "POST",
       body: JSON.stringify({ email, username, password }),
-    }),
+    }, false),
   login: (email: string, password: string) =>
     fetchJSON("/api/users/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
-    }),
+    }, false),
 };
