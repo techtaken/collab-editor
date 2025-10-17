@@ -3,6 +3,8 @@ import {
   LayoutGrid, Files, Users, Clock, Trash2, Settings, ChevronLeft,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useRecoilValue } from "recoil";
+import { userAtom } from "../state/userAtom";
 
 type Item = { label: string; to: string; icon: React.ReactNode };
 const navItems: Item[] = [
@@ -15,6 +17,7 @@ const navItems: Item[] = [
 
 export default function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const location = useLocation();
+  const user = useRecoilValue(userAtom);
   const collapsed = !open;
 
   return (
@@ -74,8 +77,8 @@ export default function Sidebar({ open, onClose }: { open: boolean; onClose: () 
             />
             {!collapsed && (
               <div className="min-w-0">
-                <div className="text-sm font-medium truncate">John Doe</div>
-                <div className="text-xs text-gray-400">john@company.com</div>
+                <div className="text-sm font-medium truncate">{user?.name}</div>
+                <div className="text-xs text-gray-400">{user?.email}</div>
               </div>
             )}
             <button className="ml-auto text-gray-300 hover:text-white" aria-label="Settings">
