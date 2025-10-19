@@ -10,8 +10,9 @@ import { json } from "@codemirror/lang-json";
 import { io, Socket } from "socket.io-client";
 import { useParams } from "react-router-dom";
 
+//TODO
 // const WS_URL = import.meta.env.REACT_APP_WS_URL ?? window.location.origin;
-const WS_URL = "http://0.0.0.0:3333"
+const WS_URL = "http://192.168.1.26:3333"
 
 
 function langExtension(lang: string) {
@@ -40,8 +41,9 @@ type Props = {
 };
 
 export default function CodeEditor({ value, onChange, language }: Props) {
-  const { id: docId } = useParams<{ id?: string }>();
-  // const docId = "0198725d-b556-4dc8-b3a4-1fd2dab53e98"
+  //TODO
+  // const { id: docId } = useParams<{ id?: string }>();
+  const docId = "11150cda-9f19-495b-98f9-569cc821b055"
   const socketRef = useRef<Socket | null>(null);
   const applyingRemoteRef = useRef(false);
   const emitTimeoutRef = useRef<number | null>(null);

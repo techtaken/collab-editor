@@ -1,6 +1,8 @@
 import { getRecoil } from "recoil-nexus";
 import { userAtom } from "../state/userAtom";
 
+//TODO
+// const API_BASE = import.meta.env.REACT_APP_BE_URL ?? window.location.origin;
 const API_BASE = import.meta.env.REACT_APP_BE_URL ?? "http://192.168.1.26:3333";
 
 // Simple error popup function
