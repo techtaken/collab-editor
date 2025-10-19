@@ -34,6 +34,8 @@ router.post(
   validate({ body: createSchema }),
   asyncHandler(async (req, res) => {
     const { title, language, visibility } = req.body;
+    console.log("Creating document with ownerId:", req.user);
+    
     const doc = await documentService.createDocument(req.user!.id, title, language, visibility);
     res.status(201).json(doc);
   })
@@ -83,7 +85,7 @@ router.patch(
     const { id } = req.params;
     if (!(await canWrite({userId:req.user!.id, documentId : id}))) return res.status(403).json({ message: "Forbidden" });
 
-    const content = await documentService.saveDocumentContent(id, req.body.content);
+    const content = await documentService.saveDocumentContent(id, req.body.content, req.body.language);
     res.json({ content: content ?? "" });
   })
 );

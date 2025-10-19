@@ -34,7 +34,7 @@ export async function createDocument(
   ownerId: string,
   title: string,
   language?: string,
-  visibility: Visibility = Visibility.PRIVATE
+  visibility: Visibility = Visibility.PUBLIC
 ) {
   const shareToken  = generateShareToken(10)
   return DocumentRepository.createDocument({
@@ -82,8 +82,8 @@ export async function updateDocumentMeta(
  * saveDocumentContent
  * Persist textual snapshot of document
  */
-export async function saveDocumentContent(documentId: string, contentText: string) {
-  return DocumentRepository.updateContent(documentId, contentText);
+export async function saveDocumentContent(documentId: string, contentText: string, language: string) {
+  return DocumentRepository.updateContent(documentId, contentText, language);
 }
 
 export async function loadDocumentContent(documentId: string): Promise<string | null> {

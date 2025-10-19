@@ -22,7 +22,7 @@ router.post(
   asyncHandler(ensureOwner),
   asyncHandler(async (req, res) => {
     const token = await sharingService.createShareTokenOnDocument(req.params.id);
-    const origin = process.env.APP_ORIGIN || "http://localhost:3000";
+    const origin = process.env.APP_ORIGIN || "http://0.0.0.0:3000";
     const shareLink = `${origin}/doc/${req.params.id}?token=${token}`;
     res.status(201).json({ token, shareLink });
   })

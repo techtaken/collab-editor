@@ -42,7 +42,7 @@ export function applyTextToYDoc(text: string, ydoc: Y.Doc) {
  */
 export async function saveYDocSnapshotToDb(docId: string, ydoc: Y.Doc) {
   const text = serializeYDocToText(ydoc);
-  return documentService.saveDocumentContent(docId, text);
+  return documentService.saveDocumentContent(docId, text, ydoc.getText("language").toString());
 }
 
 /**

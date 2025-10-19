@@ -13,6 +13,8 @@ export async function createDocument(data: {
   shareToken: string;
   language: string;
 }) {
+  console.log("Creating doc with ownerId:", data.ownerId);
+
   return prisma.document.create({
     data: {
       title: data.title,
@@ -82,10 +84,14 @@ export async function updateMeta(
 /**
  * updateContent
  */
-export async function updateContent(documentId: string, contentText: string) {
+export async function updateContent(documentId: string, contentText: string, language: string) {
   return prisma.document.update({
     where: { id: documentId },
-    data: { content: contentText },
+    data: { 
+      content: contentText ,
+      language: language
+    },
+
   });
 }
 
