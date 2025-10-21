@@ -3,7 +3,7 @@ import { userAtom } from "../state/userAtom";
 
 //TODO
 // const API_BASE = import.meta.env.REACT_APP_BE_URL ?? window.location.origin;
-const API_BASE = import.meta.env.REACT_APP_BE_URL ?? "http://192.168.1.26:3333";
+const API_BASE = import.meta.env.REACT_APP_BE_URL ?? "http://192.168.1.7:3333";
 
 // Simple error popup function
 function showErrorPopup(message: string) {
@@ -80,6 +80,24 @@ export const api = {
     }),
   createShareToken: (id: string) => fetchJSON(`/api/documents/${id}/share/token`, { method: "POST" }),
   revokeShareToken: (id: string) => fetchJSON(`/api/documents/${id}/share/token`, { method: "DELETE" }),
+
+  // Membership endpoints (refer to backend /api/documents/:id/members)
+  getMembers: (docId: string) => fetchJSON(`/api/documents/${docId}/members`),
+  addMembers: (docId: string, emails: string[], role: "READ" | "WRITE" = "READ") =>
+    fetchJSON(`/api/documents/${docId}/members`, {
+      method: "POST",
+      body: JSON.stringify({ email: emails, role }),
+    }),
+  updateMemberRole: (docId: string, userId: string, role: "READ" | "WRITE") =>
+    fetchJSON(`/api/documents/${docId}/members/${userId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ role }),
+    }),
+  removeMember: (docId: string, userId: string) =>
+    fetchJSON(`/api/documents/${docId}/members/${userId}`, {
+      method: "DELETE",
+    }),
+
   register: (email: string, username: string, password: string) =>
     fetchJSON("/api/users/register", {
       method: "POST",

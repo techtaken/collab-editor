@@ -12,7 +12,7 @@ import { useParams } from "react-router-dom";
 
 //TODO
 // const WS_URL = import.meta.env.REACT_APP_WS_URL ?? window.location.origin;
-const WS_URL = "http://192.168.1.26:3333"
+const WS_URL = "http://192.168.1.7:3333"
 
 
 function langExtension(lang: string) {

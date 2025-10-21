@@ -13,6 +13,11 @@ export default function SharePopup({ docId, visibility, onClose, shareLink }: Sh
   const [access, setAccess] = useState<"view" | "edit">("view");
   const [copied, setCopied] = useState(false);
 
+  // new states
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
   // Add or update email fields
   const handleEmailChange = (idx: number, value: string) => {
     const updated = [...emails];
@@ -23,11 +28,33 @@ export default function SharePopup({ docId, visibility, onClose, shareLink }: Sh
   const addEmailField = () => setEmails([...emails, ""]);
   const removeEmailField = (idx: number) => setEmails(emails.filter((_, i) => i !== idx));
 
-  // Simulate sharing with emails (implement API as needed)
+  // complete handleShare: use api.addMembers
   const handleShare = async () => {
-    // You can call your backend here to share with emails and access type
-    // await api.shareWithEmails(docId, emails.filter(e => e), access);
-    onClose();
+    setError(null);
+    setSuccess(null);
+
+    const filtered = emails.map(e => e.trim()).filter(Boolean);
+    if (filtered.length === 0) {
+      setError("Please enter at least one email to share with.");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const role = access === "view" ? "READ" : "WRITE";
+      await api.addMembers(docId, filtered, role);
+      setSuccess("Document shared successfully.");
+      // optionally clear inputs
+      setEmails([""]);
+      // close after short delay so user sees success
+      setTimeout(() => {
+        onClose();
+      }, 800);
+    } catch (err: any) {
+      setError(err?.message || "Failed to share document.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const handleCopy = () => {
@@ -106,21 +133,28 @@ export default function SharePopup({ docId, visibility, onClose, shareLink }: Sh
             </button>
           </div>
         </div>
+
+        {/* show error / success */}
+        {error && <div className="text-red-600 text-sm mb-3">{error}</div>}
+        {success && <div className="text-green-600 text-sm mb-3">{success}</div>}
+
         <div className="flex justify-end gap-2">
           <button
             type="button"
             className="px-4 py-2 rounded bg-gray-200"
             onClick={onClose}
+            disabled={busy}
           >
-            Done
+            Close
           </button>
           {visibility === "PRIVATE" && (
             <button
               type="button"
-              className="px-4 py-2 rounded bg-indigo-600 text-white"
+              className={`px-4 py-2 rounded text-white ${busy ? "bg-indigo-400" : "bg-indigo-600"}`}
               onClick={handleShare}
+              disabled={busy}
             >
-              Share
+              {busy ? "Sharing…" : "Share"}
             </button>
           )}
         </div>
