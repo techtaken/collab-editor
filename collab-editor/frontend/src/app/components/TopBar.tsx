@@ -12,6 +12,9 @@ export default function TopBar({
   onNewDoc: () => void;
 }) {
   const [query, setQuery] = useState("");
+  // const avatarName = user?.name?.trim() ? encodeURIComponent(user.name) : "User";
+  // const avatarSrc = `https://ui-avatars.com/api/?name=${avatarName}&background=0b1020&color=fff&rounded=true&size=64`;
+
 
   return (
     <header
@@ -76,7 +79,7 @@ export default function TopBar({
             New
           </button>
           {/* Avatar */}
-          <button
+          {/* <button
             className="h-10 w-10 rounded-full border border-[var(--border)] overflow-hidden"
             aria-label="User menu"
           >
@@ -85,7 +88,7 @@ export default function TopBar({
               alt="User avatar"
               className="h-full w-full object-cover"
             />
-          </button>
+          </button> */}
         </div>
       </div>
     </header>

@@ -73,11 +73,13 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ content }),
     }),
+  updateDocMeta: (id: string, meta: { language?: string; visibility?: string; title?: string }) =>
+    fetchJSON(`/api/documents/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(meta),
+    }),
   createShareToken: (id: string) => fetchJSON(`/api/documents/${id}/share/token`, { method: "POST" }),
   revokeShareToken: (id: string) => fetchJSON(`/api/documents/${id}/share/token`, { method: "DELETE" }),
-  // membership endpoints can be added similarly
-
-  // --- login and register do NOT use Authorization header ---
   register: (email: string, username: string, password: string) =>
     fetchJSON("/api/users/register", {
       method: "POST",
