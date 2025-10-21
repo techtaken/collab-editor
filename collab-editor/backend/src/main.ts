@@ -11,7 +11,19 @@ export const app = express();
 
 // app.use(helmet());
 // app.use(cors({ origin: process.env.FE_URL?.split(",") ?? "*", credentials: true }));
-app.use(cors());
+
+app.use(cors({
+  origin: process.env.FE_URL?.split(",") ?? "*",  // 👈 exact domain, NOT '*'
+  credentials: true,                   // 👈 must be true
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-user-id"],
+}));
+app.options("*", cors());
+
+// app.post("/api/users/login", (req, res) => {
+//   res.json({ success: true });
+// });
+
 app.use(express.json({ limit: "1mb" }));
 // app.use(cookieParser());
 
@@ -27,7 +39,8 @@ const PORT = process.env.PORT || 3333;
 // create HTTP server and attach Socket.IO
 const server = http.createServer(app);
 setupWs(server);
-server.listen(3333, "0.0.0.0", () => console.log("Server on port 4000"));
+
+server.listen(3333, process.env.MY_IP, () => console.log("Server on port 3333"));
 
 // server.listen(PORT, () => {
 //   console.log(`✅ Server running on http://localhost:${PORT}`);

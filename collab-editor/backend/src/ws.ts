@@ -10,10 +10,10 @@ import { Server, Socket } from "socket.io";
 export function setupWs(server: HttpServer) {
   const io = new Server(server, {
     cors: {
-    //   origin: process.env.FE_URL?.split(",") ?? "*",
-      origin: "*",
-      methods: ["GET", "POST"],
-      credentials: true,
+      origin: process.env.FE_URL?.split(",") ?? "*",  // 👈 exact domain, NOT '*'
+      credentials: true,                   // 👈 must be true
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization", "x-user-id"],
     },
   });
 
