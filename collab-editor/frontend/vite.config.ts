@@ -12,7 +12,6 @@ export default defineConfig(() => ({
   cacheDir: '../node_modules/.vite/frontend',
   server: {
     port: 4200,
-    //TODO
     host: '0.0.0.0',
   },
   preview: {

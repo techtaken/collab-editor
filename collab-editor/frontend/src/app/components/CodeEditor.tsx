@@ -9,10 +9,7 @@ import { html } from "@codemirror/lang-html";
 import { json } from "@codemirror/lang-json";
 import { io, Socket } from "socket.io-client";
 import { useParams } from "react-router-dom";
-
-//TODO
-// const WS_URL = import.meta.env.REACT_APP_WS_URL ?? window.location.origin;
-const WS_URL = "http://192.168.1.7:3333"
+import { DefaultEventsMap } from "@socket.io/component-emitter";
 
 
 function langExtension(lang: string) {
@@ -38,37 +35,22 @@ type Props = {
   value: string;
   onChange: (v: string) => void;
   language: string;
+  webSocket: Socket<DefaultEventsMap, DefaultEventsMap>;
 };
 
-export default function CodeEditor({ value, onChange, language }: Props) {
+export default function CodeEditor({ value, onChange, language, webSocket }: Props) {
   //TODO
   // const { id: docId } = useParams<{ id?: string }>();
   const docId = "11150cda-9f19-495b-98f9-569cc821b055"
-  const socketRef = useRef<Socket | null>(null);
+  const socketRef = useRef<Socket>(webSocket);
   const applyingRemoteRef = useRef(false);
   const emitTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
-    // only connect if there's a docId (room) — still works if undefined but fine to guard
-    // const socket = io(WS_URL);
-    const socket = io(WS_URL, {
-      transports: ["websocket"],
-    });
-
-    socket.on("connect", () => {
-      console.log("✅ Connected to server:", socket.id);
-    });
-
-    socket.on("connect_error", (err) => {
-      console.error("❌ Connection failed:", err.message);
-    });
-
-    socketRef.current = socket;
-    console.log("Socket connected:", socket.id, WS_URL);
+    
     console.log("useEffect called with docId:", docId);
+    const socket = socketRef.current;
     
-    
-
     if (docId) {
       socket.emit("join-room", docId);
     }

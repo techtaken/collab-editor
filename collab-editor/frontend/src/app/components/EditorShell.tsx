@@ -6,6 +6,9 @@ import ShareButton from "./ShareButton";
 import CollaboratorsList from "./CollaboratorsList";
 import SharePopup from "./SharePopup";
 import { api } from "../api/api";
+import { io, Socket } from "socket.io-client";
+
+const WS_URL = import.meta.env.VITE_WS_URL ?? window.location.origin;
 
 export default function EditorShell({ docMeta, initialContent }: { docMeta: any; initialContent: string }) {
   const [content, setContent] = useState(initialContent);
@@ -19,9 +22,31 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
   const [title, setTitle] = useState(docMeta.title);
   const [editingTitle, setEditingTitle] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const socketRef = useRef<Socket | null>(null);
 
   // Handle click outside for title save
   React.useEffect(() => {
+
+    // only connect if there's a docId (room) — still works if undefined but fine to guard
+    // const socket = io(WS_URL);
+    const socket = io(WS_URL, {
+      transports: ["websocket"],
+    });
+
+    socket.on("connect", () => {
+      console.log("✅ Connected to server:", socket.id);
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("❌ Connection failed:", err.message);
+    });
+
+    socketRef.current = socket;
+    console.log("Socket connected:", socket.id, WS_URL);
+
+
+
+    //editing title on click
     function handleClickOutside(event: MouseEvent) {
       if (
         editingTitle &&
@@ -73,9 +98,9 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
   // Handler to get share link and show popup
   async function handleShowShare() {
     // You may want to call api.createShareToken here if not already done
-    const res = await api.createShareToken(docMeta.id);
+    // const res = await api.createShareToken(docMeta.id);
     const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
-    setShareLink(`${origin}/doc/${docMeta.id}?token=${res.token}`);
+    setShareLink(`${origin}/doc/${docMeta.id}`);
     setShowShare(true);
   }
 
@@ -145,12 +170,12 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
         </div>
         <div className="ml-auto flex items-center gap-2">
           <CollaboratorsList docId={docMeta.id} />
-          <button onClick={save} className="px-3 py-1 rounded bg-indigo-600">Save{saving ? "…" : ""}</button>
+          {/* <button onClick={save} className="px-3 py-1 rounded bg-indigo-600">Save{saving ? "…" : ""}</button> */}
         </div>
       </div>
 
       <div className="flex-1">
-        <CodeEditor value={content} onChange={setContent} language={language} />
+        <CodeEditor value={content} onChange={setContent} language={language} webSocket={socketRef.current} />
       </div>
       
     </div>
