@@ -1,10 +1,11 @@
 // src/components/EditorShell.tsx
 import React, { useState } from "react";
-import CodeEditor from "./CodeEditor";
+// import CodeEditor from "./CodeEditor";
 import LanguageSwitch from "./LanguageSwitch";
 import ShareButton from "./ShareButton";
 import CollaboratorsList from "./CollaboratorsList";
 import { api } from "../api/api";
+import CodeEditorYjs from "./CodeEditorYjs";
 
 export default function EditorShell({ docMeta, initialContent }: { docMeta: any; initialContent: string }) {
   const [content, setContent] = useState(initialContent);
@@ -33,7 +34,8 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
       </div>
 
       <div className="flex-1">
-        <CodeEditor value={content} onChange={setContent} language={language} />
+        {/* <CodeEditorYjs value={content} onChange={setContent} language={language} /> */}
+        <CodeEditorYjs language={language} />
       </div>
     </div>
   );

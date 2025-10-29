@@ -7,12 +7,12 @@ import "./styles.css"
 import RecoilNexus from "recoil-nexus";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
+  // <React.StrictMode>
     <RecoilRoot>
       <RecoilNexus />
       <BrowserRouter>
         <App />
       </BrowserRouter>
     </RecoilRoot>
-  </React.StrictMode>
+  // </React.StrictMode>
 );

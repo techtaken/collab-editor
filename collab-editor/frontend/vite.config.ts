@@ -13,11 +13,11 @@ export default defineConfig(() => ({
   server: {
     port: 4200,
     //TODO
-    host: '0.0.0.0',
+    host: 'localhost',
   },
   preview: {
     port: 4200,
-    host: '0.0.0.0',
+    host: 'localhost',
   },
   plugins: [react(), nxViteTsPaths(), nxCopyAssetsPlugin(['*.md'])],
   // Uncomment this if you are using workers.
