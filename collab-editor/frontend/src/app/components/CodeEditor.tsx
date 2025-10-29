@@ -35,14 +35,14 @@ type Props = {
   value: string;
   onChange: (v: string) => void;
   language: string;
-  webSocket: Socket<DefaultEventsMap, DefaultEventsMap>;
+  webSocket: Socket<DefaultEventsMap, DefaultEventsMap> | null;
 };
 
 export default function CodeEditor({ value, onChange, language, webSocket }: Props) {
   //TODO
   // const { id: docId } = useParams<{ id?: string }>();
   const docId = "11150cda-9f19-495b-98f9-569cc821b055"
-  const socketRef = useRef<Socket>(webSocket);
+  const socketRef = useRef<Socket<DefaultEventsMap, DefaultEventsMap> | null>(webSocket);
   const applyingRemoteRef = useRef(false);
   const emitTimeoutRef = useRef<number | null>(null);
 
@@ -51,30 +51,34 @@ export default function CodeEditor({ value, onChange, language, webSocket }: Pro
     console.log("useEffect called with docId:", docId);
     const socket = socketRef.current;
     
-    if (docId) {
+    if (docId && socket) {
       socket.emit("join-room", docId);
     }
 
-    socket.on("remote-code-change", (data: { code: string }) => {
-      const code = data?.code;
-      if (typeof code !== "string") return;
-      console.log(" inside remote-code-change:", code);
+    if (socket) {
+      socket.on("remote-code-change", (data: { code: string }) => {
+        const code = data?.code;
+        if (typeof code !== "string") return;
+        console.log(" inside remote-code-change:", code);
 
-      // avoid echoing the incoming change
-      applyingRemoteRef.current = true;
-      try {
-        onChange(code);
-      } finally {
-        // small timeout to allow editor internal events to settle
-        window.setTimeout(() => {
-          applyingRemoteRef.current = false;
-        }, 50);
-      }
-    });
+        // avoid echoing the incoming change
+        applyingRemoteRef.current = true;
+        try {
+          onChange(code);
+        } finally {
+          // small timeout to allow editor internal events to settle
+          window.setTimeout(() => {
+            applyingRemoteRef.current = false;
+          }, 50);
+        }
+      });
+    }
 
     return () => {
-      if (docId) socket.emit("leave-room", docId);
-      socket.disconnect();
+      if (docId && socketRef.current) socketRef.current.emit("leave-room", docId);
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
       socketRef.current = null;
     };
   }, [docId, value]);
