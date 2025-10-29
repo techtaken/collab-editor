@@ -7,6 +7,8 @@ out-tsc
 
 # dependencies
 node_modules
+/colab-editor/node_modules
+/colab-editor/package-lock.json
 
 # IDEs and editors
 /.idea

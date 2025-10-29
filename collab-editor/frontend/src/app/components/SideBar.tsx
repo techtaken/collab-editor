@@ -20,6 +20,10 @@ export default function Sidebar({ open, onClose }: { open: boolean; onClose: () 
   const user = useRecoilValue(userAtom);
   const collapsed = !open;
 
+  // dynamic avatar url using user name initials
+  const avatarName = user?.name?.trim() ? encodeURIComponent(user.name) : "User";
+  const avatarSrc = `https://ui-avatars.com/api/?name=${avatarName}&background=0b1020&color=fff&rounded=true&size=64`;
+
   return (
     <>
       {/* overlay for mobile */}
@@ -72,8 +76,8 @@ export default function Sidebar({ open, onClose }: { open: boolean; onClose: () 
           <div className="border-t border-[var(--sidebar-border)] p-3 flex items-center gap-3">
             <img
               className="h-9 w-9 rounded-full"
-              src="https://ui-avatars.com/api/?name=JD&background=0b1020&color=fff"
-              alt="User avatar"
+              src={avatarSrc}
+              alt={`User avatar ${user?.name ?? ""}`}
             />
             {!collapsed && (
               <div className="min-w-0">

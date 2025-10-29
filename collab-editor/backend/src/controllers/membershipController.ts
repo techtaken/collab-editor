@@ -30,7 +30,7 @@ router.get(
 );
 
 const addSchema = z.object({
-  email: z.string().email(),
+  email: z.array(z.string().email()),
   role: z.nativeEnum(AccessLevel).default(AccessLevel.READ),
 });
 // POST /api/documents/:id/members

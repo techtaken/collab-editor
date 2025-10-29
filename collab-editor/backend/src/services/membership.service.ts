@@ -14,15 +14,38 @@ export async function addMember(documentId: string, userId: string, role: Access
 
 /**
  * addMemberByEmail
- * Finds (or creates) a user by email and adds them to the document.
- * If you prefer strict invite-only, replace getOrCreateUserByEmail with getUserByEmail and error if not found.
+ * Finds (or creates) users by email and adds them to the document.
+ * - emails: string[] - list of emails to add
+ * - role: AccessLevel.READ | AccessLevel.WRITE
+ * - returns array of membership records
+ *
+ * Note: current implementation uses strict invite-only behavior (errors if any email has no user).
+ * If you prefer to auto-create users, replace userService.getUserByEmail with userService.getOrCreateUserByEmail.
  */
-export async function addMemberByEmail(documentId: string, email: string, role: AccessLevel = AccessLevel.READ) {
-  const user = await userService.getUserByEmail(email);
-  if(!user){
-    throw new Error("User with this email does not exist");
+export async function addMemberByEmail(documentId: string, emails: string[], role: AccessLevel = AccessLevel.READ) {
+  if (!Array.isArray(emails) || emails.length === 0) {
+    throw new Error("emails must be a non-empty array of email strings");
   }
-  return addMember(documentId, user.id, role);
+
+  const notFound: string[] = [];
+  const addedMembers = [];
+
+  // sequentially ensure predictable errors / ordering; switch to Promise.all if parallelism desired
+  for (const email of emails) {
+    const user = await userService.getUserByEmail(email);
+    if (!user) {
+      notFound.push(email);
+      continue;
+    }
+    const membership = await addMember(documentId, user.id, role);
+    addedMembers.push(membership);
+  }
+
+  if (notFound.length) {
+    throw new Error(`User(s) not found for email(s): ${notFound.join(", ")}`);
+  }
+
+  return addedMembers;
 }
 
 export async function removeMember(documentId: string, userId: string) {

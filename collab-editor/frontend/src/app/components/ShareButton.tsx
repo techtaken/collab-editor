@@ -24,6 +24,7 @@ export default function ShareButton({ docId }: { docId: string }) {
       setLink(null);
     } finally {
       setBusy(false);
+      setLink(null);
     }
   }
 
