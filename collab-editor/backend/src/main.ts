@@ -31,8 +31,8 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 3333;
 const server = http.createServer(app);
 const wss = new WebSocketServer({ noServer: true });
-// setupYjs(server); // 👈 REMOVE this
-setupManualYjsServer(wss); // 👈 ADD this
+
+setupManualYjsServer(wss); 
 
 server.on('upgrade', (request, socket, head) => {
   // Use the pathname to distinguish between different WebSocket services if needed.
