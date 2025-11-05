@@ -7,7 +7,7 @@ import CollaboratorsList from "./CollaboratorsList";
 import SharePopup from "./SharePopup";
 import { api } from "../api/api";
 import CodeEditorYjs from "./CodeEditorYjs";
-import { io, Socket } from "socket.io-client";
+// import { io, Socket } from "socket.io-client";
 
 const WS_URL = import.meta.env.VITE_WS_URL ?? window.location.origin;
 
@@ -23,29 +23,9 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
   const [title, setTitle] = useState(docMeta.title);
   const [editingTitle, setEditingTitle] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
-  const socketRef = useRef<Socket | null>(null);
 
   // Handle click outside for title save
   React.useEffect(() => {
-
-    // only connect if there's a docId (room) — still works if undefined but fine to guard
-    // const socket = io(WS_URL);
-    const socket = io(WS_URL, {
-      transports: ["websocket"],
-    });
-
-    socket.on("connect", () => {
-      console.log("✅ Connected to server:", socket.id);
-    });
-
-    socket.on("connect_error", (err) => {
-      console.error("❌ Connection failed:", err.message);
-    });
-
-    socketRef.current = socket;
-    console.log("Socket connected:", socket.id, WS_URL);
-
-
 
     //editing title on click
     function handleClickOutside(event: MouseEvent) {
