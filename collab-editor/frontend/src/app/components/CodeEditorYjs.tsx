@@ -20,7 +20,8 @@ import { useRecoilValue } from "recoil";
 import { userAtom } from "../state/userAtom"; // Make sure this path is correct
 
 // --- Constants ---
-const WS_URL = import.meta.env.REACT_APP_WS_URL ?? "ws://localhost:3333";
+// const WS_URL = import.meta.env.REACT_APP_WS_URL ?? "ws://localhost:3333";
+const WS_URL = import.meta.env.REACT_APP_WS_URL ?? "ws://192.168.1.34:3333";
 const MESSAGE_SYNC = 0;
 const MESSAGE_AWARENESS = 1;
 
