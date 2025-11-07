@@ -5,10 +5,15 @@ import cors from "cors";
 import { registerRoutes } from "./routes";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 import http from "http";
-// import { setupYjs } from "./yjs-server"; // 👈 REMOVE this
-import { setupManualYjsServer } from "./yjs-server-premitive"; // 👈 ADD this
-import { WebSocketServer } from "ws";
 
+// 1. REMOVE the old manual server import
+// import { setupManualYjsServer } from "./yjs-server-premitive";
+
+// 2. ADD the new socket.io server import
+import { setupYjsSocketServer } from "./yjs-server-premitive"; // Assuming you named it yjs-server.ts
+
+// 3. REMOVE the ws import
+// import { WebSocketServer } from "ws";
 
 export const app = express();
 
@@ -22,27 +27,22 @@ console.log("xxxx",process.env.FE_URL);
 
 app.options("*", cors());
 app.use(express.json({ limit: "1mb" }));
-
 registerRoutes(app);
-
 app.use(notFoundHandler);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3333;
 const server = http.createServer(app);
-const wss = new WebSocketServer({ noServer: true });
 
-setupManualYjsServer(wss); 
+// 4. REMOVE the manual wss creation
+// const wss = new WebSocketServer({ noServer: true });
 
-server.on('upgrade', (request, socket, head) => {
-  // Use the pathname to distinguish between different WebSocket services if needed.
-  // For now, we assume all WebSocket connections are for Y.js.
-  
-  // This function authenticates the request and hands it off to the 'ws' server.
-  wss.handleUpgrade(request, socket, head, (ws) => {
-    // The 'ws' server then emits a 'connection' event, which our configureYjsServer handler will catch.
-    wss.emit('connection', ws, request);
-  });
-});
+// 5. CALL the new setup function
+setupYjsSocketServer(server); 
+
+// 6. REMOVE the entire server.on('upgrade') handler
+// server.on('upgrade', (request, socket, head) => {
+//   ...
+// });
 
 server.listen(3333, process.env.MY_IP, () => console.log("Server on port 3333"));
