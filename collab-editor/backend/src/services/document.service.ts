@@ -3,6 +3,7 @@ import { Visibility } from "@prisma/client";
 import * as DocumentRepository from "../repositories/doc.repository";
 import crypto from "crypto";
 
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
 /**
  * Generate a secure random token
@@ -113,3 +114,56 @@ export async function duplicateDocument(documentId: string, newOwnerId: string, 
     language: doc.language,
   });
 }
+
+export const generateAIResponse = async (query, currentCode) => {
+  try {
+    // We use gemini-1.5-flash for higher rate limits (15 RPM / 1500 RPD)
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `You are an expert coding assistant. 
+                     Here is the user's code context:
+                     ${currentCode}
+                     
+                     User Query: ${query}`
+            }]
+          }]
+        }),
+      }
+    );
+
+    const data = await response.json();
+    
+    // Check for errors (like rate limits)
+    if (data.error) {
+       console.error("Gemini API Error:", data.error);
+       return `Error: ${data.error.message}`;
+    }
+
+    // Extract the text from the response
+    return data.candidates[0].content.parts[0].text;
+    
+  } catch (error) {
+    console.error("Error calling Gemini:", error);
+    return "Sorry, I couldn't reach the Gemini API. Please check your API key and internet connection.";
+  }
+};
+
+
+// CURL command for testing Gemini API:
+// curl -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=YOUR_API_KEY" \
+//      -H "Content-Type: application/json" \
+//      -d '{
+//            "contents": [{
+//              "parts": [{
+//                "text": "Hello, Gemini!"
+//              }]
+//            }]
+//          }'  

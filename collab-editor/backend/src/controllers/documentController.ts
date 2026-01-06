@@ -130,3 +130,21 @@ router.delete(
     res.status(204).send();
   })
 );
+
+// POST /api/documents/:id/ai-query
+router.post(
+  "/:id/ai-query",
+  ensureAuth,
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    console.log("ai-query 123");
+    
+    if (!(await canRead({userId:req.user!.id, documentId : id}))) return res.status(403).json({ message: "Forbidden" });
+
+    const query: string = req.body.query;
+    const currentCode = await documentService.loadDocumentContent(id) || "";
+
+    const aiResponse = await documentService.generateAIResponse(query, currentCode);
+    res.json({ response: aiResponse }); 
+  })
+);
