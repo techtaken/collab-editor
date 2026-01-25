@@ -20,7 +20,7 @@ export const app = express();
 app.use(cors({
   origin: process.env.FE_URL?.split(",") ?? "*",  // 👈 exact domain, NOT '*'
   credentials: true,                   // 👈 must be true
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS","PATCH"],
   allowedHeaders: ["Content-Type", "Authorization", "x-user-id"],
 }));
 console.log("xxxx",process.env.FE_URL);

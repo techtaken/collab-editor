@@ -1,5 +1,5 @@
 // src/components/EditorShell.tsx
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import LanguageSwitch from "./LanguageSwitch";
 import CollaboratorsList from "./CollaboratorsList";
 import SharePopup from "./SharePopup";
@@ -20,6 +20,7 @@ import { html } from "@codemirror/lang-html";
 import { json } from "@codemirror/lang-json";
 
 const WS_URL = import.meta.env.VITE_WS_URL ?? window.location.origin;
+const AUTOSAVE_DEBOUNCE_MS = 1500;
 
 export default function EditorShell({ docMeta, initialContent }: { docMeta: any; initialContent: string }) {
   const [content, setContent] = useState(initialContent);
@@ -43,6 +44,12 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
   const providerRef = useRef<any | null>(null);
   const [awareness, setAwareness] = useState<any | null>(null);
 
+  // refs for autosave debounce & current ytext
+  const saveTimeoutRef = useRef<number | null>(null);
+  const currentYTextRef = useRef<Y.Text | null>(null);
+  // suppress autosave immediately after initialization / sync
+  const suppressSaveRef = useRef<boolean>(true);
+
   function langExtension(lang: string) {
     switch (lang) {
       case "javascript":
@@ -63,8 +70,8 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
   }
 
   // Handle click outside for title save
-  React.useEffect(() => {
-    //editing title on click
+  useEffect(() => {
+    // editing title on click
     function handleClickOutside(event: MouseEvent) {
       if (
         editingTitle &&
@@ -85,65 +92,128 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
     // eslint-disable-next-line
   }, [editingTitle, title]);
 
-  React.useEffect(() => {
-      console.log("docId", docId);
+  useEffect(() => {
+    console.log("docId", docId);
 
-      // wait for doc id and user token
-      if (!docId || !user?.token) {
-          console.log("Waiting for user token...");
-          return;
-      }
-      
-      // --- Y.js Setup ---
-      const ydoc = new Y.Doc();
-      const ytext = ydoc.getText("codemirror");
-      const undoManager = new Y.UndoManager(ytext);
-  
-      // The provider handles connecting, auth, blobs, batching, and reconnects.
-      const provider = new SocketIOProvider(
-        WS_URL,
-        docId,
-        ydoc,
-        {
-          // pass token for server auth
-          auth: { token: user.token }
-        }
-      );
-  
-      // expose awareness for collaborators list
-      providerRef.current = provider;
-      setAwareness(provider.awareness);
-  
-      // awareness is used by CodeMirror y-collab too
-      const awareness = provider.awareness;
-    
-      const collaborationPlugin = yCollab(ytext, awareness, { undoManager });
-      const extensions = [
-          langExtension(language),
-          collaborationPlugin,
-          EditorView.theme({ /* ... your theme ... */ })
-      ];
-      setEditorExtensions(extensions);
-  
-      // --- Cleanup Function ---
-      return () => {
-        console.log("Cleanup function running: disconnecting provider.");
-        provider.disconnect();
-        ydoc.destroy();
-        providerRef.current = null;
-        setAwareness(null);
-      };
-    }, [docId, language, user]); 
-  
-
-  async function save() {
-    setSaving(true);
-    try {
-      await api.saveDocContent(docMeta.id, content);
-    } finally {
-      setSaving(false);
+    // wait for doc id and user token
+    if (!docId || !user?.token) {
+      console.log("Waiting for user token...");
+      return;
     }
-  }
+
+    // --- Y.js Setup ---
+    const ydoc = new Y.Doc();
+    const ytext = ydoc.getText("codemirror");
+    currentYTextRef.current = ytext;
+    const undoManager = new Y.UndoManager(ytext);
+
+    // If we have initialContent, populate Y.Text BEFORE connecting provider to avoid
+    // invalid change ranges that happen when remote/CM apply changes to an empty doc.
+    if (initialContent && ytext.length === 0) {
+      // insert initial content into ydoc before provider/connect
+      ytext.insert(0, initialContent);
+    }
+    
+    // The provider handles connecting, auth, blobs, batching, and reconnects.
+    const provider = new SocketIOProvider(
+      WS_URL,
+      docId,
+      ydoc,
+      {
+        // pass token for server auth
+        auth: { token: user.token }
+      }
+    );
+
+    // allow a short grace period for initial sync before autosaves are scheduled
+    // this prevents the first local incoming changes (from setting initial content or remote sync)
+    // from triggering an immediate save and causing race conditions.
+    suppressSaveRef.current = true;
+    const suppressHandle = window.setTimeout(() => {
+      suppressSaveRef.current = false;
+    }, 800);
+
+    // expose awareness for collaborators list
+    providerRef.current = provider;
+    setAwareness(provider.awareness);
+
+    // awareness is used by CodeMirror y-collab too
+    const awareness = provider.awareness;
+
+    const collaborationPlugin = yCollab(ytext, awareness, { undoManager });
+    const extensions = [
+      langExtension(language),
+      collaborationPlugin,
+      EditorView.theme({ /* ... your theme ... */ })
+    ];
+    setEditorExtensions(extensions);
+
+    // (initialContent already inserted above before provider connect)
+
+    // Auto-save handler (debounced)
+    const scheduleSave = () => {
+      if (suppressSaveRef.current) return;
+       if (saveTimeoutRef.current) {
+         window.clearTimeout(saveTimeoutRef.current);
+       }
+       // @ts-ignore - window.setTimeout returns number(integer id) in browsers
+       saveTimeoutRef.current = window.setTimeout(async () => {
+         try {
+           setSaving(true);
+           const latest = ytext.toString();
+           // update local display content as well
+           setContent(latest);
+           await api.saveDocContent(docId, latest);
+         } catch (err) {
+           console.error("Auto-save failed", err);
+         } finally {
+           setSaving(false);
+           saveTimeoutRef.current = null;
+         }
+       }, AUTOSAVE_DEBOUNCE_MS);
+     };
+
+    // observe Y.Text updates
+    const yObserver = (event: Y.YTextEvent) => {
+      // update local snapshot so UI can read current text
+      setContent(ytext.toString());
+      // schedule an autosave whenever the Y.Text is updated
+      if (suppressSaveRef.current) return;
+       scheduleSave();
+    };
+    ytext.observe(yObserver);
+
+    // --- Cleanup Function ---
+    return () => {
+      window.clearTimeout(suppressHandle);
+       // clear pending save
+       if (saveTimeoutRef.current) {
+         window.clearTimeout(saveTimeoutRef.current);
+         saveTimeoutRef.current = null;
+       }
+       try {
+         ytext.unobserve(yObserver);
+       } catch (_) {}
+       provider.disconnect();
+       ydoc.destroy();
+       providerRef.current = null;
+       setAwareness(null);
+       currentYTextRef.current = null;
+     };
+  }, [docId, language, user, initialContent]);
+
+  // async function save() {
+  //   setSaving(true);
+  //   try {
+  //     // prefer latest from Y.Text if available
+  //     const ytext = currentYTextRef.current;
+  //     const payload = ytext ? ytext.toString() : content;
+  //     await api.saveDocContent(docMeta.id, payload);
+  //     setContent(payload);
+  //   } finally {
+  //     setSaving(false);
+  //   }
+  // }
 
   async function handleLanguageChange(l: string) {
     setLanguage(l);
@@ -238,13 +308,21 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
         <div className="ml-auto flex items-center gap-2">
           {/* pass awareness (from SocketIOProvider) so CollaboratorsList can read live presence */}
           <CollaboratorsList docId={docMeta.id} awareness={awareness} />
+          <div className="text-xs text-gray-400 ml-2">{saving ? "Saving…" : ""}</div>
         </div>
       </div>
 
       <div className="flex-1">
-        <CodeEditorYjs editorExtensions={editorExtensions} />
+        {editorExtensions.length > 0 && (
+          <CodeEditorYjs
+            // ensure editor mounts with the current snapshot so y-collab and CM start aligned
+            key={`${docMeta.id}:${content?.slice(0, 32) ?? ""}`}
+            editorExtensions={editorExtensions}
+            value={content}
+          />
+        )}
       </div>
-      
+
     </div>
   );
 }
