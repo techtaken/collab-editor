@@ -1,4 +1,4 @@
-// src/components/EditorShell.tsx
+// // src/components/EditorShell.tsx
 import React, { useState, useRef, useEffect } from "react";
 import LanguageSwitch from "./LanguageSwitch";
 import CollaboratorsList from "./CollaboratorsList";
@@ -18,22 +18,19 @@ import { python } from "@codemirror/lang-python";
 import { java } from "@codemirror/lang-java";
 import { html } from "@codemirror/lang-html";
 import { json } from "@codemirror/lang-json";
+import DocTitle from "./DocTitle";
 
 const WS_URL = import.meta.env.VITE_WS_URL ?? window.location.origin;
-const AUTOSAVE_DEBOUNCE_MS = 1500;
 
 export default function EditorShell({ docMeta, initialContent }: { docMeta: any; initialContent: string }) {
   const [content, setContent] = useState(initialContent);
   const [language, setLanguage] = useState(docMeta.language || "typescript");
   const [visibility, setVisibility] = useState(docMeta.visibility || "PRIVATE");
-  const [saving, setSaving] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [shareLink, setShareLink] = useState<string | null>(null);
 
-  // Title editing state
+  // Title state (kept here; editing handled inside DocTitle)
   const [title, setTitle] = useState(docMeta.title);
-  const [editingTitle, setEditingTitle] = useState(false);
-  const titleInputRef = useRef<HTMLInputElement>(null);
 
   const user = useRecoilValue(userAtom);
   const docId = docMeta.id;
@@ -43,12 +40,6 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
   // keep provider/awareness so other components (CollaboratorsList) can consume
   const providerRef = useRef<any | null>(null);
   const [awareness, setAwareness] = useState<any | null>(null);
-
-  // refs for autosave debounce & current ytext
-  const saveTimeoutRef = useRef<number | null>(null);
-  const currentYTextRef = useRef<Y.Text | null>(null);
-  // suppress autosave immediately after initialization / sync
-  const suppressSaveRef = useRef<boolean>(true);
 
   function langExtension(lang: string) {
     switch (lang) {
@@ -69,28 +60,18 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
     }
   }
 
-  // Handle click outside for title save
-  useEffect(() => {
-    // editing title on click
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        editingTitle &&
-        titleInputRef.current &&
-        !titleInputRef.current.contains(event.target as Node)
-      ) {
-        saveTitle();
+  // Title save handler used by DocTitle
+  async function handleTitleSave(newTitle: string) {
+    if (newTitle !== title && newTitle.trim().length > 0) {
+      try {
+        await api.updateDocMeta(docMeta.id, { title: newTitle });
+        setTitle(newTitle);
+        docMeta.title = newTitle;
+      } catch (err) {
+        console.error("Failed to save title:", err);
       }
     }
-    if (editingTitle) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-    // eslint-disable-next-line
-  }, [editingTitle, title]);
+  }
 
   useEffect(() => {
     console.log("docId", docId);
@@ -104,15 +85,15 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
     // --- Y.js Setup ---
     const ydoc = new Y.Doc();
     const ytext = ydoc.getText("codemirror");
-    currentYTextRef.current = ytext;
+    // currentYTextRef.current = ytext;
     const undoManager = new Y.UndoManager(ytext);
 
     // If we have initialContent, populate Y.Text BEFORE connecting provider to avoid
     // invalid change ranges that happen when remote/CM apply changes to an empty doc.
-    if (initialContent && ytext.length === 0) {
-      // insert initial content into ydoc before provider/connect
-      ytext.insert(0, initialContent);
-    }
+    // if (initialContent && ytext.length === 0) {
+    //   // insert initial content into ydoc before provider/connect
+    //   ytext.insert(0, initialContent);
+    // }
     
     // The provider handles connecting, auth, blobs, batching, and reconnects.
     const provider = new SocketIOProvider(
@@ -125,13 +106,17 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
       }
     );
 
-    // allow a short grace period for initial sync before autosaves are scheduled
-    // this prevents the first local incoming changes (from setting initial content or remote sync)
-    // from triggering an immediate save and causing race conditions.
-    suppressSaveRef.current = true;
-    const suppressHandle = window.setTimeout(() => {
-      suppressSaveRef.current = false;
-    }, 800);
+    // Wait for the provider to sync before deciding to insert initialContent
+    // provider.on('sync', (isSynced: boolean) => {
+    //   if (isSynced && ytext.length === 0 && initialContent) {
+    //     // Only seed if the shared document is actually empty
+    //     console.log("Seeding initial content into empty Y.Text",initialContent);
+    //     // ytext.insert(0, initialContent);
+    //     console.log("Y.Text after seeding:",ytext.toString());
+    //   }
+    //   suppressSaveRef.current = false;
+    // });
+
 
     // expose awareness for collaborators list
     providerRef.current = provider;
@@ -148,72 +133,16 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
     ];
     setEditorExtensions(extensions);
 
-    // (initialContent already inserted above before provider connect)
-
-    // Auto-save handler (debounced)
-    const scheduleSave = () => {
-      if (suppressSaveRef.current) return;
-       if (saveTimeoutRef.current) {
-         window.clearTimeout(saveTimeoutRef.current);
-       }
-       // @ts-ignore - window.setTimeout returns number(integer id) in browsers
-       saveTimeoutRef.current = window.setTimeout(async () => {
-         try {
-           setSaving(true);
-           const latest = ytext.toString();
-           // update local display content as well
-           setContent(latest);
-           await api.saveDocContent(docId, latest);
-         } catch (err) {
-           console.error("Auto-save failed", err);
-         } finally {
-           setSaving(false);
-           saveTimeoutRef.current = null;
-         }
-       }, AUTOSAVE_DEBOUNCE_MS);
-     };
-
-    // observe Y.Text updates
-    const yObserver = (event: Y.YTextEvent) => {
-      // update local snapshot so UI can read current text
-      setContent(ytext.toString());
-      // schedule an autosave whenever the Y.Text is updated
-      if (suppressSaveRef.current) return;
-       scheduleSave();
-    };
-    ytext.observe(yObserver);
-
+  
     // --- Cleanup Function ---
     return () => {
-      window.clearTimeout(suppressHandle);
-       // clear pending save
-       if (saveTimeoutRef.current) {
-         window.clearTimeout(saveTimeoutRef.current);
-         saveTimeoutRef.current = null;
-       }
-       try {
-         ytext.unobserve(yObserver);
-       } catch (_) {}
        provider.disconnect();
        ydoc.destroy();
        providerRef.current = null;
        setAwareness(null);
-       currentYTextRef.current = null;
+       setContent("")
      };
   }, [docId, language, user, initialContent]);
-
-  // async function save() {
-  //   setSaving(true);
-  //   try {
-  //     // prefer latest from Y.Text if available
-  //     const ytext = currentYTextRef.current;
-  //     const payload = ytext ? ytext.toString() : content;
-  //     await api.saveDocContent(docMeta.id, payload);
-  //     setContent(payload);
-  //   } finally {
-  //     setSaving(false);
-  //   }
-  // }
 
   async function handleLanguageChange(l: string) {
     setLanguage(l);
@@ -226,14 +155,6 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
     await api.updateDocMeta(docMeta.id, { visibility: newVisibility });
   }
 
-  async function saveTitle() {
-    if (title !== docMeta.title && title.trim().length > 0) {
-      await api.updateDocMeta(docMeta.id, { title });
-      docMeta.title = title; // update local meta so next edit is correct
-    }
-    setEditingTitle(false);
-  }
-
   // Handler to get share link and show popup
   async function handleShowShare() {
     const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
@@ -244,32 +165,9 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
   return (
     <div className="h-[80vh] rounded card overflow-hidden flex flex-col">
       <div className="flex items-center gap-4 px-4 py-2 border-b border-white/5">
-        {/* Editable Title */}
+        {/* Document Title (extracted) */}
         <div className="font-medium" style={{ minWidth: 0 }}>
-          {editingTitle ? (
-            <input
-              ref={titleInputRef}
-              type="text"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === "Enter") {
-                  saveTitle();
-                }
-              }}
-              className="border-b border-indigo-400 bg-transparent outline-none px-1 py-0.5 text-base font-medium"
-              autoFocus
-              style={{ minWidth: 120, maxWidth: 300 }}
-            />
-          ) : (
-            <span
-              className="cursor-pointer truncate block max-w-xs"
-              title={title}
-              onClick={() => setEditingTitle(true)}
-            >
-              {title}
-            </span>
-          )}
+          <DocTitle value={title} onSave={handleTitleSave} />
         </div>
         <LanguageSwitch value={language} onChange={handleLanguageChange} />
         {/* Share Button */}
@@ -308,17 +206,15 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
         <div className="ml-auto flex items-center gap-2">
           {/* pass awareness (from SocketIOProvider) so CollaboratorsList can read live presence */}
           <CollaboratorsList docId={docMeta.id} awareness={awareness} />
-          <div className="text-xs text-gray-400 ml-2">{saving ? "Saving…" : ""}</div>
         </div>
       </div>
 
       <div className="flex-1">
-        {editorExtensions.length > 0 && (
+        {(editorExtensions.length > 0) && (
           <CodeEditorYjs
             // ensure editor mounts with the current snapshot so y-collab and CM start aligned
-            key={`${docMeta.id}:${content?.slice(0, 32) ?? ""}`}
+            key={docMeta.id}
             editorExtensions={editorExtensions}
-            value={content}
           />
         )}
       </div>

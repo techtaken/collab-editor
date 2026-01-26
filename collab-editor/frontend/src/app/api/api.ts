@@ -1,9 +1,7 @@
 import { getRecoil } from "recoil-nexus";
 import { userAtom } from "../state/userAtom";
 
-//TODO
 const API_BASE = import.meta.env.VITE_BE_URL ?? 'http://localhost:3333';
-// const API_BASE = import.meta.env.REACT_APP_BE_URL ?? "http://192.168.1.3:3333";
 
 // Simple error popup function 
 function showErrorPopup(message: string) {
@@ -30,7 +28,7 @@ function showErrorPopup(message: string) {
 }
 
 async function fetchJSON(input: string, init?: RequestInit, useAuth = true) {
-  console.log("API_BASE", API_BASE);
+  // console.log("API_BASE", API_BASE);
 
   // Get token from userAtom if useAuth is true
   let headers: Record<string, string> = { "Content-Type": "application/json", "x-user-id": "1" };
