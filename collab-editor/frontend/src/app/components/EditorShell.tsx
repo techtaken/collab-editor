@@ -84,7 +84,7 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
 
     // --- Y.js Setup ---
     const ydoc = new Y.Doc();
-    const ytext = ydoc.getText("codemirror");
+    const ytext = ydoc.getText("content");
     // currentYTextRef.current = ytext;
     const undoManager = new Y.UndoManager(ytext);
 
@@ -105,6 +105,19 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
         auth: { token: user.token }
       }
     );
+    // --- ADD THIS TO DEBUG CONNECTION ---
+    provider.on('status', (event: any) => {
+      console.log('🟡 [Yjs Status]:', event.status); // Should print "connected"
+    });
+
+    provider.on('sync', (isSynced: boolean) => {
+      console.log('🟢 [Yjs Synced]:', isSynced);
+    });
+    
+    // Check underlying socket errors
+    provider.socket.on("connect_error", (err: any) => {
+      console.error("🔴 [Socket Auth Error]:", err.message);
+    });
 
     // Wait for the provider to sync before deciding to insert initialContent
     // provider.on('sync', (isSynced: boolean) => {

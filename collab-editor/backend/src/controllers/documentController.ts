@@ -70,9 +70,7 @@ router.get(
 router.get(
   "/:id/content",
   ensureAuth,
-  asyncHandler(async (req, res) => {
-    console.log("content");
-    
+  asyncHandler(async (req, res) => {    
     const { id } = req.params;
     if (!(await canRead({userId:req.user!.id, documentId : id}))) return res.status(403).json({ message: "Forbidden" });
     const content = await documentService.loadDocumentContent(id);

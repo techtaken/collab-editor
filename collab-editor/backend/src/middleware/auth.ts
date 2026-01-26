@@ -17,7 +17,7 @@ export function ensureAuth(req: Request, res: Response, next: NextFunction) {
 
     // Attach user to request so routes can access it
     (req as any).user = { id: decoded.id, email: decoded.email };
-    console.log("Decoded JWT:", decoded);
+    // console.log("Decoded JWT:", decoded);
 // (req as any).user = { id: "1", email: "test@gmail.com" };
     next();
   } catch (err) {
