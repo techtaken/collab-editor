@@ -30,49 +30,38 @@ export const setupYjsSocketServer = (server: http.Server) => {
 
   // Use the 'document-loaded' event which provides (doc, roomName)
   ysocketio.on('document-loaded', async (doc: any) => { 
-
-    console.log("####document-loaded called");
-    
-    // 2. Access the runtime property 'name' 
-    // We cast doc to 'any' because strict Y.Doc types don't know about this property
     const documentId = doc.name as string; 
 
-    // SAFETY CHECK: Verify we actually got a string before touching the DB
     if (!documentId || typeof documentId !== 'string') {
-        console.error('❌ [Yjs Error] Could not extract documentId from doc.name');
-        return; 
+      console.error('❌ Could not extract documentId');
+      return; 
     }
 
     console.log(`[Yjs] Document loaded: ${documentId}`);
 
-    // 3. Initial Load from DB
+    // Load from DB
     const existingContent = await loadDocumentContent(documentId);
     if (existingContent) {
-      // Cast back to Y.Doc to get strict typing for Yjs operations
-      const typedDoc = doc as Y.Doc; 
-      const ytext = typedDoc.getText('content');
-      
+      const ytext = (doc as Y.Doc).getText('content');
       if (ytext.length === 0) {
+        console.log(`📥 Seeding DB content into Y.Text: ${existingContent.slice(0, 50)}`);
         ytext.insert(0, existingContent);
       }
     }
 
-    // 4. Setup Persistence (Debounce logic)
+    // Persist updates
     doc.on('update', () => {
-      console.log("update####");
-      
-      // ... (Your debounce logic remains the same, using documentId) ...
-       if (saveTimeouts.has(documentId)) {
+      if (saveTimeouts.has(documentId)) {
         clearTimeout(saveTimeouts.get(documentId)!);
       }
       const timeout = setTimeout(async () => {
         try {
           const contentText = doc.getText('content').toString();
+          console.log(`💾 Persisting update for ${documentId}: ${contentText.slice(0, 50)}`);
           await saveDocumentContent(documentId, contentText, 'javascript');
-          console.log(`[DB] Saved: ${documentId}`);
           saveTimeouts.delete(documentId);
         } catch (error) {
-          console.error(`[DB Error] ${documentId}:`, error);
+          console.error(`❌ Save failed for ${documentId}:`, error);
         }
       }, 2000);
       saveTimeouts.set(documentId, timeout);

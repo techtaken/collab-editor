@@ -28,8 +28,6 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
   const [visibility, setVisibility] = useState(docMeta.visibility || "PRIVATE");
   const [showShare, setShowShare] = useState(false);
   const [shareLink, setShareLink] = useState<string | null>(null);
-
-  // Title state (kept here; editing handled inside DocTitle)
   const [title, setTitle] = useState(docMeta.title);
 
   const user = useRecoilValue(userAtom);
@@ -76,7 +74,6 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
   useEffect(() => {
     console.log("docId", docId);
 
-    // wait for doc id and user token
     if (!docId || !user?.token) {
       console.log("Waiting for user token...");
       return;
@@ -85,76 +82,65 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
     // --- Y.js Setup ---
     const ydoc = new Y.Doc();
     const ytext = ydoc.getText("content");
-    // currentYTextRef.current = ytext;
     const undoManager = new Y.UndoManager(ytext);
 
-    // If we have initialContent, populate Y.Text BEFORE connecting provider to avoid
-    // invalid change ranges that happen when remote/CM apply changes to an empty doc.
-    // if (initialContent && ytext.length === 0) {
-    //   // insert initial content into ydoc before provider/connect
-    //   ytext.insert(0, initialContent);
-    // }
-    
-    // The provider handles connecting, auth, blobs, batching, and reconnects.
+    // Create provider
     const provider = new SocketIOProvider(
       WS_URL,
       docId,
       ydoc,
-      {
-        // pass token for server auth
-        auth: { token: user.token }
-      }
+      { auth: { token: user.token } }
     );
-    // --- ADD THIS TO DEBUG CONNECTION ---
-    provider.on('status', (event: any) => {
-      console.log('🟡 [Yjs Status]:', event.status); // Should print "connected"
-    });
 
-    provider.on('sync', (isSynced: boolean) => {
-      console.log('🟢 [Yjs Synced]:', isSynced);
-    });
-    
-    // Check underlying socket errors
-    provider.socket.on("connect_error", (err: any) => {
-      console.error("🔴 [Socket Auth Error]:", err.message);
-    });
-
-    // Wait for the provider to sync before deciding to insert initialContent
-    // provider.on('sync', (isSynced: boolean) => {
-    //   if (isSynced && ytext.length === 0 && initialContent) {
-    //     // Only seed if the shared document is actually empty
-    //     console.log("Seeding initial content into empty Y.Text",initialContent);
-    //     // ytext.insert(0, initialContent);
-    //     console.log("Y.Text after seeding:",ytext.toString());
-    //   }
-    //   suppressSaveRef.current = false;
-    // });
-
-
-    // expose awareness for collaborators list
     providerRef.current = provider;
     setAwareness(provider.awareness);
 
-    // awareness is used by CodeMirror y-collab too
     const awareness = provider.awareness;
-
     const collaborationPlugin = yCollab(ytext, awareness, { undoManager });
     const extensions = [
       langExtension(language),
       collaborationPlugin,
-      EditorView.theme({ /* ... your theme ... */ })
+      EditorView.theme({})
     ];
     setEditorExtensions(extensions);
 
-  
-    // --- Cleanup Function ---
+    // Debug events
+    provider.on('status', (event: any) => {
+      console.log('🟡 [Yjs Status]:', event.status);
+    });
+
+    // provider.on('sync', (isSynced: boolean) => {
+    //   console.log('🟢 [Yjs Synced]:', isSynced);
+      
+    //   if (isSynced) {
+    //     // Seed initialContent only if Y.Text is empty and we haven't seeded yet
+    //     // if (ytext.length === 0 && initialContent && !hasSeededRef.current) {
+    //     //   console.log("📝 Seeding Y.Text (first time):", initialContent.slice(0, 50));
+    //     //   ytext.insert(0, initialContent);
+    //     //   hasSeededRef.current = true;
+    //     // }
+        
+    //     const currentContent = ytext.toString();
+    //     console.log("📥 Synced content:", currentContent.slice(0, 50));
+    //     setContent(currentContent);
+    //     setIsSynced(true); // ✅ Update state to trigger re-render
+    //   }
+    // });
+
+    provider.socket.on("connect_error", (err: any) => {
+      console.error("🔴 [Socket Auth Error]:", err.message);
+    });
+
+    
+
+    // --- Cleanup ---
     return () => {
-       provider.disconnect();
-       ydoc.destroy();
-       providerRef.current = null;
-       setAwareness(null);
-       setContent("")
-     };
+      console.log("Cleanup: disconnecting provider");
+      provider.disconnect();
+      ydoc.destroy();
+      providerRef.current = null;
+      setAwareness(null);
+    };
   }, [docId, language, user, initialContent]);
 
   async function handleLanguageChange(l: string) {
@@ -223,15 +209,13 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
       </div>
 
       <div className="flex-1">
-        {(editorExtensions.length > 0) && (
+        {editorExtensions.length > 0 && (
           <CodeEditorYjs
-            // ensure editor mounts with the current snapshot so y-collab and CM start aligned
-            key={docMeta.id}
+            // key={docMeta.id}
             editorExtensions={editorExtensions}
           />
         )}
       </div>
-
     </div>
   );
 }
