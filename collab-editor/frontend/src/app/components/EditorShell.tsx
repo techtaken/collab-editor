@@ -23,6 +23,7 @@ import DocTitle from "./DocTitle";
 const WS_URL = import.meta.env.VITE_WS_URL ?? window.location.origin;
 
 export default function EditorShell({ docMeta, initialContent }: { docMeta: any; initialContent: string }) {
+  const user = useRecoilValue(userAtom);
   const [content, setContent] = useState(initialContent);
   const [language, setLanguage] = useState(docMeta.language || "typescript");
   const [visibility, setVisibility] = useState(docMeta.visibility || "PRIVATE");
@@ -30,7 +31,6 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
   const [shareLink, setShareLink] = useState<string | null>(null);
   const [title, setTitle] = useState(docMeta.title);
 
-  const user = useRecoilValue(userAtom);
   const docId = docMeta.id;
 
   const [editorExtensions, setEditorExtensions] = useState<any[]>([]);
@@ -93,9 +93,21 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
     );
 
     providerRef.current = provider;
-    setAwareness(provider.awareness);
-
     const awareness = provider.awareness;
+    
+    // Set local user in awareness so other users can see us
+    console.log("👤 Setting awareness state for user:", user);
+    awareness.setLocalState({
+      user: {
+        id: user?.id,
+        name: user?.name,
+        email: user?.email,
+        color: `#${Math.floor(Math.random() * 16777215).toString(16)}`, // random color for cursor
+      }
+    });
+
+    setAwareness(awareness);
+
     const collaborationPlugin = yCollab(ytext, awareness, { undoManager });
     const extensions = [
       langExtension(language),
@@ -130,8 +142,6 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
     provider.socket.on("connect_error", (err: any) => {
       console.error("🔴 [Socket Auth Error]:", err.message);
     });
-
-    
 
     // --- Cleanup ---
     return () => {
