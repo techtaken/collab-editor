@@ -113,19 +113,29 @@ router.patch(
   })
 );
 
-// DELETE /api/documents/:id  (owner-only; enforce in access service or check owner explicitly)
+// DELETE /api/documents/:id
 router.delete(
   "/:id",
   ensureAuth,
   asyncHandler(async (req, res) => {
     const { id } = req.params;
-    // simplest: only allow if user is owner (canWrite may also be true for members)
+    
+    // Verify document exists
     const doc = await documentService.getDocumentById(id);
-    if (!doc) return res.status(404).json({ message: "Not found" });
-    if (doc.ownerId !== req.user!.id) return res.status(403).json({ message: "Owner only" });
+    if (!doc) {
+      return res.status(404).json({ message: "Document not found" });
+    }
 
+    // Only owner can delete
+    if (doc.ownerId !== req.user!.id) {
+      return res.status(403).json({ message: "Only document owner can delete" });
+    }
+
+    // Delete the document and all associated data
     await documentService.deleteDocument(id);
-    res.status(204).send();
+    
+    console.log(`📝 Document deleted: ${id} by user ${req.user!.id}`);
+    res.status(200).json({ message: "Document deleted successfully" });
   })
 );
 

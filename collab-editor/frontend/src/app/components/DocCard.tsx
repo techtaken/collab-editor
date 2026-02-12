@@ -1,5 +1,5 @@
 import React from "react";
-import { MoreVertical, FileCode2 } from "lucide-react";
+import { Trash2, FileCode2 } from "lucide-react";
 import AvatarGroup from "./AvatarGroup";
 
 const langBadge = (lang?: string) => {
@@ -13,7 +13,7 @@ export default function DocCard({
   language,
   collaborators = [],
   onOpen,
-  onMenu,
+  onDelete,
   variant = "grid",
 }: {
   name: string;
@@ -21,9 +21,16 @@ export default function DocCard({
   language?: string;
   collaborators?: { name: string; avatar?: string }[];
   onOpen: () => void;
-  onMenu?: () => void;
+  onDelete?: () => void;
   variant?: "grid" | "list";
 }) {
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm(`Delete "${name}"? This action cannot be undone.`)) {
+      onDelete?.();
+    }
+  };
+
   const body = (
     <div className="card group cursor-pointer">
       <div className="flex items-start justify-between">
@@ -37,14 +44,11 @@ export default function DocCard({
           </div>
         </div>
         <button
-          className="icon-btn h-9 w-9 opacity-0 group-hover:opacity-100"
-          aria-label="Document actions"
-          onClick={(e) => {
-            e.stopPropagation();
-            onMenu?.();
-          }}
+          className="icon-btn h-9 w-9 opacity-0 group-hover:opacity-100 text-red-600 hover:text-red-700"
+          aria-label="Delete document"
+          onClick={handleDelete}
         >
-          <MoreVertical size={18} />
+          <Trash2 size={18} />
         </button>
       </div>
       <div className="mt-3 flex items-center justify-between">
@@ -77,14 +81,11 @@ export default function DocCard({
           <AvatarGroup users={collaborators} />
         </div>
         <button
-          className="icon-btn h-9 w-9 opacity-100 md:opacity-0 md:group-hover:opacity-100 justify-self-end"
-          aria-label="Document actions"
-          onClick={(e) => {
-            e.stopPropagation();
-            onMenu?.();
-          }}
+          className="icon-btn h-9 w-9 opacity-100 md:opacity-0 md:group-hover:opacity-100 justify-self-end text-red-600 hover:text-red-700"
+          aria-label="Delete document"
+          onClick={handleDelete}
         >
-          <MoreVertical size={18} />
+          <Trash2 size={18} />
         </button>
       </div>
     );

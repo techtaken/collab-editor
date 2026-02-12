@@ -8,6 +8,7 @@ import { docsState } from "../state/atoms";
 import { api } from "../api/api";
 import { useDocsLoader } from "../hooks/useDocs";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner"; 
 
 export default function Dashboard() {
   useDocsLoader();
@@ -48,6 +49,18 @@ export default function Dashboard() {
     return docs.filter((d) => d.title.toLowerCase().includes(q));
   }, [docs, filter]);
 
+  // Delete handler
+  const handleDelete = async (docId: string) => {
+    try {
+      await api.deleteDocument(docId);
+      toast.success("Document deleted");
+      setDocs((prev) => prev.filter((doc) => doc.id !== docId));
+    } catch (err) {
+      console.error("Failed to delete document:", err);
+      toast.error("Failed to delete document");
+    }
+  };
+
   return (
     <Layout breadcrumb={[{ label: "Dashboard" }]}>
       <div className="flex items-center justify-between mb-4">
@@ -67,7 +80,7 @@ export default function Dashboard() {
               language={d.language || "typescript"}
               collaborators={[{ name: "Alice" }, { name: "Bob" }, { name: "Chloe" }]}
               onOpen={() => navigate(`/doc/${d.id}`)}
-              onMenu={() => {}}
+              onDelete={() => handleDelete(d.id)}
               variant="grid"
             />
           ))}
@@ -82,7 +95,7 @@ export default function Dashboard() {
               language={d.language || "typescript"}
               collaborators={[{ name: "Alice" }, { name: "Bob" }, { name: "Chloe" }]}
               onOpen={() => navigate(`/doc/${d.id}`)}
-              onMenu={() => {}}
+              onDelete={() => handleDelete(d.id)}
               variant="list"
             />
           ))}

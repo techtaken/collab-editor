@@ -106,4 +106,20 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ email, password }),
     }, false),
+  deleteDocument: async (docId: string) => {
+    const response = await fetch(`${API_BASE}/api/documents/${docId}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${getRecoil(userAtom)?.token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw error;
+    }
+    
+    return response.json();
+  },
 };
