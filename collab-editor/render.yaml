@@ -13,17 +13,10 @@ services:
       - key: PORT
         value: 3333
       - key: POSTGRES_URI
-        fromDatabase:
-          name: collab-editor-db
-          property: connectionString
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: FE_URL
         sync: false
       - key: GEMINI_API_KEY
         sync: false
-
-databases:
-  - name: collab-editor-db
-    databaseName: collab_editor
-    plan: free
