@@ -31,7 +31,9 @@ registerRoutes(app);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3333;
+// const PORT = process.env.PORT || 3333;
+const PORT = Number(process.env.PORT) || 3333;
+const HOST = process.env.NODE_ENV === "production" ? "0.0.0.0" : (process.env.MY_IP || "localhost");
 const server = http.createServer(app);
 
 // 4. REMOVE the manual wss creation
@@ -45,4 +47,7 @@ setupYjsSocketServer(server);
 //   ...
 // });
 
-server.listen(3333, process.env.MY_IP, () => console.log("Server on port 3333"));
+server.listen(PORT, HOST, () => {
+  console.log(`Server on port http://${HOST}:${PORT}`)
+  console.log(`Environment: ${process.env.NODE_ENV}`);
+});

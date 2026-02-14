@@ -3,7 +3,15 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "db:init": "psql $POSTGRES_URI -f backend/src/db/migrations/001_init.sql"
+    "db:init": "psql $POSTGRES_URI -f backend/src/db/migrations/001_init.sql",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "npx nx build backend --prod",
+    "build:frontend": "npx nx build frontend --prod",
+    "start:backend": "node dist/backend/main.js",
+    "prisma:generate": "npx prisma generate --schema=./backend/src/prisma/schema.prisma",
+    "prisma:migrate": "npx prisma migrate deploy --schema=./backend/src/prisma/schema.prisma",
+    "deploy:setup": "node deploy-setup.js",
+    "postbuild": "npm run prisma:generate"
   },
   "private": true,
   "devDependencies": {
