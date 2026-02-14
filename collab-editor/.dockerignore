@@ -1,0 +1,15 @@
+node_modules
+dist
+.nx
+.git
+.env
+.env.local
+*.log
+coverage
+.vscode
+.idea
+.DS_Store
+frontend-e2e
+backend-e2e
+mongodb-docker
+*.md
