@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "set-ip": "node -e \"const os=require('os');const ifaces=os.networkInterfaces();let ip='localhost';for(let iface in ifaces){for(let alias of ifaces[iface]){if(alias.family==='IPv4'&&!alias.internal){ip=alias.address;break;}}}console.log('# Backend Environment Variables (for local development)\\n# This file is for local development only NOT committed to git\\n\\nMY_IP='+ip+'\\n\\nFE_URL=http://'+ip+':4200\\n\\nREACT_APP_BE_URL=http://'+ip+':3333/');\" > .env.local"
+  }
+}

@@ -1,8 +1,0 @@
-{
-  "scripts": {
-    "build:backend": "npx nx build backend --prod",
-    "build:frontend": "npx nx build frontend --prod",
-    "start:backend": "npx prisma generate --schema=./backend/src/prisma/schema.prisma && node dist/backend/main.js",
-    "deploy:migrate": "npx prisma migrate deploy --schema=./backend/src/prisma/schema.prisma"
-  }
-}

@@ -1,0 +1,22 @@
+# Render Blueprint for Backend Deployment
+services:
+  - type: web
+    name: collab-editor-backend
+    env: node
+    buildCommand: npm install && npx nx run build backend --prod
+    startCommand: npx prisma generate --schema=./backend/src/prisma/schema.prisma && node dist/backend/main.js
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3333
+      - key: POSTGRES_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FE_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
