@@ -3,8 +3,7 @@ services:
   - type: web
     name: collab-editor-backend
     env: node
-    rootDirectory: collab-editor
-    buildCommand: npm install && npm run build:backend
+    buildCommand: npm install && npx nx run build backend --prod
     startCommand: npx prisma generate --schema=./backend/src/prisma/schema.prisma && node dist/backend/main.js
     plan: free
     healthCheckPath: /api/health
