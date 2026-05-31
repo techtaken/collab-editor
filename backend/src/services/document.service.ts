@@ -2,8 +2,9 @@
 import { Visibility } from "@prisma/client";
 import * as DocumentRepository from "../repositories/doc.repository";
 import crypto from "crypto";
+import { log } from "console";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
+let GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
 /**
  * Generate a secure random token
@@ -118,6 +119,7 @@ export async function duplicateDocument(documentId: string, newOwnerId: string, 
 export const generateAIResponse = async (query, currentCode) => {
   try {
     // We use gemini-1.5-flash for higher rate limits (15 RPM / 1500 RPD)
+    console.log("Calling Gemini API..." + GEMINI_API_KEY);
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {

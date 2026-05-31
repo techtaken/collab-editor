@@ -74,13 +74,11 @@ postgres log file :->  cat /usr/local/var/log/postgresql\@14.log | tail -100
 #### 3a. prisma migrate + genrate prisma client (types)
 
 ```sh
-npx prisma migrate dev --name comment_for_changes
+npm install --include=dev &
+& npx prisma generate --schema=./backend/src/prisma/schema.prisma &
+& npx prisma migrate deploy --schema=./backend/src/prisma/schema.prisma &
+& npx nx build backend --prod -->
 
-npx prisma generate
-```
-
-```sh
-npx nx serve backend
 ```
 
 The API will start on http://localhost:3333

@@ -19,10 +19,11 @@ import { java } from "@codemirror/lang-java";
 import { html } from "@codemirror/lang-html";
 import { json } from "@codemirror/lang-json";
 import DocTitle from "./DocTitle";
+import { Bot } from "lucide-react";
 
 const WS_URL = import.meta.env.VITE_WS_URL ?? window.location.origin;
 
-export default function EditorShell({ docMeta, initialContent }: { docMeta: any; initialContent: string }) {
+export default function EditorShell({ docMeta, initialContent, onToggleAIAssistant }: { docMeta: any; initialContent: string; onToggleAIAssistant?: () => void }) {
   const user = useRecoilValue(userAtom);
   const [content, setContent] = useState(initialContent);
   const [language, setLanguage] = useState(docMeta.language || "typescript");
@@ -193,6 +194,17 @@ export default function EditorShell({ docMeta, initialContent }: { docMeta: any;
             onClose={() => setShowShare(false)}
             shareLink={shareLink}
           />
+        )}
+        {/* AI Assistant Button */}
+        {onToggleAIAssistant && (
+          <button
+            onClick={onToggleAIAssistant}
+            className="px-3 py-1 rounded bg-purple-600 text-white hover:bg-purple-700 transition flex items-center gap-1"
+            title="Toggle AI Assistant"
+          >
+            <Bot size={16} />
+            AI
+          </button>
         )}
         {/* Visibility Toggle Switch */}
         <div className="flex items-center gap-2">

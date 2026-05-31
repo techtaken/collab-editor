@@ -3,12 +3,14 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Layout from "../components/Layout";
 import EditorShell from "../components/EditorShell";
+import AIAssistant from "../components/AIAssistant";
 import { api } from "../api/api";
 
 export default function DocPage() {
   const { id } = useParams<{ id?: string }>();
   const [meta, setMeta] = useState<any | null>(null);
   const [content, setContent] = useState<string>("");
+  const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -25,5 +27,16 @@ export default function DocPage() {
     };
   }, [id]);
 
-  return <Layout>{meta ? <EditorShell docMeta={meta} initialContent={content} /> : <div>Loading…</div>}</Layout>;
+  return (
+    <Layout>
+      {meta ? <EditorShell docMeta={meta} initialContent={content} onToggleAIAssistant={() => setAiAssistantOpen(!aiAssistantOpen)} /> : <div>Loading…</div>}
+      {meta && id && (
+        <AIAssistant
+          documentId={id}
+          isOpen={aiAssistantOpen}
+          onToggle={() => setAiAssistantOpen(!aiAssistantOpen)}
+        />
+      )} 
+    </Layout>
+  );
 }
