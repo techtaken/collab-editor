@@ -1,7 +1,7 @@
 {
+  "installCommand": "npm install --include=dev",
   "buildCommand": "npx nx build frontend --prod",
   "outputDirectory": "dist/frontend",
-  "framework": "vite",
   "rewrites": [
     {
       "source": "/(.*)",
